@@ -1,0 +1,205 @@
+import React, { useState, useEffect } from 'react'
+import { useTheme } from '../context/ThemeContext'
+import { getEmployees, deleteEmployee, updateEmployeeStatus } from '../apis/employee'
+import { toast } from 'react-toastify'
+import { MdAdd, MdEdit, MdDelete, MdVisibility } from 'react-icons/md'
+import { useNavigate } from 'react-router-dom'
+import Toggle from '../components/ui/Toggle'
+
+const Employees = () => {
+  const { colors } = useTheme()
+  const navigate = useNavigate()
+  const [employees, setEmployees] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchEmployees()
+  }, [])
+
+  const fetchEmployees = async () => {
+    try {
+      const response = await getEmployees()
+      console.log('API Response:', response)
+      // Extract employees array from response
+      const employeesData = response.employees || []
+      setEmployees(employeesData)
+    } catch (error) {
+      console.error('Fetch employees error:', error)
+      toast.error('Failed to fetch employees')
+      setEmployees([]) // Set empty array on error
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleDelete = async (id) => {
+    if (window.confirm('Are you sure you want to delete this employee?')) {
+      try {
+        await deleteEmployee(id)
+        toast.success('Employee deleted successfully')
+        fetchEmployees()
+      } catch (error) {
+        toast.error('Failed to delete employee')
+      }
+    }
+  }
+
+  const handleStatusToggle = async (employeeId) => {
+    try {
+      console.log('Toggling status for employee:', employeeId)
+      const response = await updateEmployeeStatus(employeeId)
+      console.log('Status toggle response:', response)
+      toast.success('Status updated successfully')
+      fetchEmployees()
+    } catch (error) {
+      console.error('Status toggle error:', error)
+      toast.error(error.response?.data?.message || 'Failed to update status')
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-lg" style={{ color: colors.text }}>Loading...</div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold" style={{ color: colors.text }}>
+          Manage Employees
+        </h1>
+        <button
+          onClick={() => navigate('/dashboard/employees/add')}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors"
+          style={{ 
+            backgroundColor: colors.primary, 
+            color: colors.background 
+          }}
+        >
+          <MdAdd size={20} />
+          Add Employee
+        </button>
+      </div>
+
+      <div 
+        className="rounded-lg border shadow-sm overflow-hidden"
+        style={{ 
+          backgroundColor: colors.background, 
+          borderColor: colors.accent + '30' 
+        }}
+      >
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead style={{ backgroundColor: colors.accent + '10' }}>
+              <tr>
+                <th className="px-6 py-3 text-left text-sm font-medium" style={{ color: colors.text }}>
+                  Name
+                </th>
+                <th className="px-6 py-3 text-left text-sm font-medium" style={{ color: colors.text }}>
+                  Email
+                </th>
+                <th className="px-6 py-3 text-left text-sm font-medium" style={{ color: colors.text }}>
+                  Designation
+                </th>
+                <th className="px-6 py-3 text-left text-sm font-medium" style={{ color: colors.text }}>
+                  Phone
+                </th>
+                <th className="px-6 py-3 text-left text-sm font-medium" style={{ color: colors.text }}>
+                  Status
+                </th>
+                <th className="px-6 py-3 text-left text-sm font-medium" style={{ color: colors.text }}>
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {Array.isArray(employees) && employees.map((employee, index) => (
+                <tr 
+                  key={employee._id || index}
+                  className="border-t"
+                  style={{ borderColor: colors.accent + '20' }}
+                >
+                  <td className="px-6 py-4 text-sm" style={{ color: colors.text }}>
+                    <div className="flex items-center gap-3">
+                      {employee.profilePhoto?.url && (
+                        <img 
+                          src={employee.profilePhoto.url} 
+                          alt={employee.name}
+                          className="w-8 h-8 rounded-full object-cover"
+                        />
+                      )}
+                      {employee.name}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-sm" style={{ color: colors.text }}>
+                    {employee.email}
+                  </td>
+                  <td className="px-6 py-4 text-sm" style={{ color: colors.text }}>
+                    {employee.designation}
+                  </td>
+                  <td className="px-6 py-4 text-sm" style={{ color: colors.text }}>
+                    {employee.phone}
+                  </td>
+                  <td className="px-6 py-4">
+                    <Toggle 
+                      active={employee.isActive}
+                      onClick={() => handleStatusToggle(employee._id)}
+                    />
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => navigate(`/dashboard/employees/view/${employee._id}`)}
+                        className="p-2 rounded-lg transition-colors"
+                        style={{ 
+                          backgroundColor: colors.primary + '20',
+                          color: colors.primary 
+                        }}
+                        title="View"
+                      >
+                        <MdVisibility size={16} />
+                      </button>
+                      <button
+                        onClick={() => navigate(`/dashboard/employees/edit/${employee._id}`)}
+                        className="p-2 rounded-lg transition-colors"
+                        style={{ 
+                          backgroundColor: '#f59e0b20',
+                          color: '#f59e0b' 
+                        }}
+                        title="Edit"
+                      >
+                        <MdEdit size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(employee._id)}
+                        className="p-2 rounded-lg transition-colors"
+                        style={{ 
+                          backgroundColor: '#ef444420',
+                          color: '#ef4444' 
+                        }}
+                        title="Delete"
+                      >
+                        <MdDelete size={16} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          
+          {employees.length === 0 && (
+            <div className="text-center py-8">
+              <p style={{ color: colors.textSecondary }}>No employees found</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default Employees
