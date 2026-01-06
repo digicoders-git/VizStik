@@ -55,8 +55,8 @@ const ViewEmployee = () => {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
           <button
-            onClick={() => navigate('/dashboard/employees')}
-            className="p-2 rounded-lg transition-colors"
+            onClick={() => navigate(-1)}
+            className="p-2 cursor-pointer rounded-lg transition-colors"
             style={{ 
               backgroundColor: colors.accent + '20',
               color: colors.text 
@@ -71,7 +71,7 @@ const ViewEmployee = () => {
         
         <button
           onClick={() => navigate(`/dashboard/employees/edit/${id}`)}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors"
+          className="flex cursor-pointer items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors"
           style={{ 
             backgroundColor: colors.primary, 
             color: colors.background 

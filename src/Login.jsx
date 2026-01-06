@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { adminLogin } from './apis/auth.js'
 import { toast } from 'react-toastify'
@@ -7,6 +7,10 @@ const Login = () => {
   const [formData, setFormData] = useState({ email: '', password: '' })
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
+
+  useEffect(() => {
+    localStorage.removeItem('admin-token');
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -86,13 +90,8 @@ const Login = () => {
             {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
-        <div className="mt-6 pt-6 border-t border-gray-100 text-center">
-            <button 
-              onClick={() => navigate('/instructor-login')}
-              className="text-sm font-bold text-blue-600 hover:text-blue-700 cursor-pointer transition-colors"
-            >
-              Login as Instructor →
-            </button>
+        <div className="mt-6 pt-6 border-t border-gray-100 text-center text-xs">
+            <a href="https:digicoders.in" target='_blank' >Design and Developed By #TeamDigicoders</a>
         </div>
       </div>
     </div>

@@ -76,8 +76,8 @@ const EditEmployee = () => {
     <div className="p-6">
       <div className="flex items-center gap-4 mb-6">
         <button
-          onClick={() => navigate('/dashboard/employees')}
-          className="p-2 rounded-lg transition-colors"
+          onClick={() => navigate(-1)}
+          className="p-2 cursor-pointer rounded-lg transition-colors"
           style={{ 
             backgroundColor: colors.accent + '20',
             color: colors.text 
@@ -217,7 +217,7 @@ const EditEmployee = () => {
             <button
               type="submit"
               disabled={loading}
-              className="flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-colors"
+              className="flex cursor-pointer items-center gap-2 px-6 py-3 rounded-lg font-medium transition-colors"
               style={{ 
                 backgroundColor: loading ? colors.accent + '40' : colors.primary,
                 color: colors.background 
@@ -229,8 +229,8 @@ const EditEmployee = () => {
             
             <button
               type="button"
-              onClick={() => navigate('/dashboard/employees')}
-              className="px-6 py-3 rounded-lg font-medium transition-colors"
+              onClick={() => navigate(-1)}
+              className="px-6 cursor-pointer py-3 rounded-lg font-medium transition-colors"
               style={{ 
                 backgroundColor: colors.accent + '20',
                 color: colors.text 

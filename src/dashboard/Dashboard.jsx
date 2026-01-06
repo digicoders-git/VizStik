@@ -1,19 +1,50 @@
 import React, { useState, useEffect } from 'react'
-import { NavLink, Outlet, useLocation } from 'react-router-dom'
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useTheme } from '../context/ThemeContext'
-import { MdMenu, MdSettings, MdNotifications, MdClose, MdDashboard, MdLogout, MdPeople } from 'react-icons/md'
+import { MdMenu, MdSettings, MdNotifications, MdClose, MdDashboard, MdLogout, MdPeople, MdStorefront, MdPerson } from 'react-icons/md'
+
 import { Clock } from './Clock'
-import logo from '../assets/logo.png'
 import logoo from '../assets/logoo.png'
 import mainLogo from '../assets/mainLogo.png'
+import { Settings } from 'lucide-react'
+import Swal from 'sweetalert2'
 
 const Dashboard = () => {
   const { colors, isDarkMode, toggleTheme, currentTheme, themes, setTheme } = useTheme()
-  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [openSubmenu, setOpenSubmenu] = useState(null)
   const location = useLocation()
-  
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    const token = localStorage.getItem('admin-token')
+    if (!token) {
+      navigate('/')
+    }
+  }, [navigate]);
+
+  const handleLogout = () => {
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "You will be logged out of the dashboard!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, logout!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        localStorage.removeItem('admin-token')
+        navigate('/')
+        Swal.fire(
+          'Logged Out!',
+          'You have been logged out successfully.',
+          'success'
+        )
+      }
+    })
+  }
 
   const formatTime = (date) => {
     return date.toLocaleTimeString('en-US', { 
@@ -45,6 +76,8 @@ const Dashboard = () => {
   const navLinks = [
     { name: 'Dashboard', icon: MdDashboard, path: '/dashboard' },
     { name: 'Manage Employees', icon: MdPeople, path: '/dashboard/employees' },
+    { name: 'Manage Shop', icon: MdStorefront, path: '/dashboard/shops' },
+    { name: 'Profile', icon: MdPerson, path: '/dashboard/profile' },
   ]
 
   const themeOptions = [
@@ -64,11 +97,11 @@ const Dashboard = () => {
         <div className='p-4 flex items-center justify-center border-b h-15' style={{borderColor: colors.accent + '30'}}>
           {sidebarOpen ? (
             <div className="transition-all duration-500 ease-out flex items-center justify-center w-full">
-               <img src={mainLogo} className="max-w-[140px] h-auto object-contain" alt="CodersAdda" />
+               <img src={logoo} className={`max-w-[50px] h-auto object-contain`} alt="CodersAdda" />
             </div>
           ) : (
              <div className="w-10  h-10 flex items-center justify-center transition-all duration-500 overflow-hidden">
-               <img src={logo} className="w-full h-full object-contain scale-[1]" alt="CA" />
+               <img src={logoo} className="w-full h-full object-contain scale-[1]" alt="CA" />
              </div>
           )}
         </div>
@@ -195,10 +228,7 @@ const Dashboard = () => {
         
         {/* Logout Button */}
         <div className='p-4 border-t' style={{ borderColor: colors.accent + '30' }}>
-          <button onClick={() => {
-                    // Add logout functionality here
-                    console.log('Logout clicked')
-                  }}
+          <button onClick={handleLogout}
                   className={`flex cursor-pointer items-center px-4 py-3 w-full rounded transition-all duration-200 font-semibold ${!sidebarOpen ? 'justify-center' : ''}`}
                   style={{ color: '#DC2626' }}
                   onMouseEnter={(e) => {
@@ -249,7 +279,7 @@ const Dashboard = () => {
             </button>
             <div className='flex flex-col'>
               <h1 className='text-sm md:text-xl font-semibold' style={{ color: colors.text }}>Welcome Back</h1>
-              <span className='text-xs md:text-sm' style={{ color: colors.textSecondary }}>DigiCoders</span>
+              <span className='text-xs md:text-sm' style={{ color: colors.textSecondary }}>Admin</span>
             </div>
           </div>
           
@@ -262,7 +292,7 @@ const Dashboard = () => {
                     className='p-2 cursor-pointer rounded-lg transition-colors'
                     onMouseEnter={(e) => e.target.style.backgroundColor = colors.primary + '20'}
                     onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}>
-              {/* <Settings className='w-5 h-5 md:w-6 md:h-6' /> */}
+              <Settings className='w-5 h-5 md:w-6 md:h-6' />
             </button> 
             <div className='w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center'
                  style={{ backgroundColor: colors.accent }}>

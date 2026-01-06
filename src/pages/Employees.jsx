@@ -5,12 +5,15 @@ import { toast } from 'react-toastify'
 import { MdAdd, MdEdit, MdDelete, MdVisibility } from 'react-icons/md'
 import { useNavigate } from 'react-router-dom'
 import Toggle from '../components/ui/Toggle'
+import Loader from '../components/ui/Loader'
+import Swal from 'sweetalert2'
 
 const Employees = () => {
   const { colors } = useTheme()
   const navigate = useNavigate()
   const [employees, setEmployees] = useState([])
   const [loading, setLoading] = useState(true)
+  const [active, setactive] = useState(true)
 
   useEffect(() => {
     fetchEmployees()
@@ -33,22 +36,38 @@ const Employees = () => {
   }
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this employee?')) {
-      try {
-        await deleteEmployee(id)
-        toast.success('Employee deleted successfully')
-        fetchEmployees()
-      } catch (error) {
-        toast.error('Failed to delete employee')
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!'
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await deleteEmployee(id)
+          fetchEmployees()
+          Swal.fire(
+            'Deleted!',
+            'Employee has been deleted.',
+            'success'
+          )
+        } catch (error) {
+          Swal.fire(
+            'Error!',
+            'Failed to delete employee.',
+            'error'
+          )
+        }
       }
-    }
+    })
   }
 
   const handleStatusToggle = async (employeeId) => {
     try {
-      console.log('Toggling status for employee:', employeeId)
-      const response = await updateEmployeeStatus(employeeId)
-      console.log('Status toggle response:', response)
+      await updateEmployeeStatus(employeeId)
       toast.success('Status updated successfully')
       fetchEmployees()
     } catch (error) {
@@ -60,7 +79,7 @@ const Employees = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="text-lg" style={{ color: colors.text }}>Loading...</div>
+        <Loader size={60} />
       </div>
     )
   }
@@ -153,7 +172,7 @@ const Employees = () => {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => navigate(`/dashboard/employees/view/${employee._id}`)}
-                        className="p-2 rounded-lg transition-colors"
+                        className="p-2 cursor-pointer rounded-lg transition-colors"
                         style={{ 
                           backgroundColor: colors.primary + '20',
                           color: colors.primary 
@@ -164,7 +183,7 @@ const Employees = () => {
                       </button>
                       <button
                         onClick={() => navigate(`/dashboard/employees/edit/${employee._id}`)}
-                        className="p-2 rounded-lg transition-colors"
+                        className="p-2 cursor-pointer rounded-lg transition-colors"
                         style={{ 
                           backgroundColor: '#f59e0b20',
                           color: '#f59e0b' 
@@ -175,7 +194,7 @@ const Employees = () => {
                       </button>
                       <button
                         onClick={() => handleDelete(employee._id)}
-                        className="p-2 rounded-lg transition-colors"
+                        className="p-2 cursor-pointer rounded-lg transition-colors"
                         style={{ 
                           backgroundColor: '#ef444420',
                           color: '#ef4444' 
