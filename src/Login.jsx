@@ -91,7 +91,7 @@ const Login = () => {
           </button>
         </form>
         <div className="mt-6 pt-6 border-t border-gray-100 text-center text-xs">
-            <a href="https:digicoders.in" target='_blank' >Design and Developed By #TeamDigicoders</a>
+            <a href="https://digicoders.in" target='_blank' >Design and Developed By #TeamDigicoders</a>
         </div>
       </div>
     </div>
