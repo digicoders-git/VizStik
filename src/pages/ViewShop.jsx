@@ -151,7 +151,7 @@ const ViewShop = () => {
             </div>
 
             {/* Contact Information */}
-            <div>
+            {/* <div>
               <h2 className="text-xl font-semibold mb-4" style={{ color: colors.text }}>
                 Contact Information
               </h2>
@@ -160,7 +160,7 @@ const ViewShop = () => {
                 <InfoRow label="Alternate Phone" value={shop.alternatePhone} icon={MdPhone} />
                 <InfoRow label="Email" value={shop.email} icon={MdEmail} />
               </div>
-            </div>
+            </div> */}
 
              {/* Timing Information */}
             <div>

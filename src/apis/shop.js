@@ -9,10 +9,10 @@ export const getShops = async (params = {}) => {
       queryParams.append(key, params[key]);
     }
   });
-
+  
   const queryString = queryParams.toString();
   const url = queryString ? `/shop/get?${queryString}` : '/shop/get';
-
+  // console.log(queryString);
   const response = await http.get(url);
   return response.data;
 };

@@ -24,7 +24,7 @@ const ManageShop = () => {
   // Pagination & Sorting states
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [limit] = useState(5);
+  const [limit] = useState(10);
   const [sortOrder, setSortOrder] = useState('desc'); // 'asc' or 'desc'
   const [totalShops, setTotalShops] = useState(0);
 
@@ -403,7 +403,7 @@ const ManageShop = () => {
                     {shop.city}
                   </td>
                   <td className="px-4 py-3 text-sm" style={{ color: colors.text }}>
-                    {shop.phone}
+                    {shop.ownerPhone}
                   </td>
                   <td className="px-4 py-3 text-sm" style={{ color: colors.text }}>
                     {formatDate(shop.createdAt)}
