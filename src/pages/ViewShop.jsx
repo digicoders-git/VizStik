@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { getShopById } from '../apis/shop';
-import { MdArrowBack, MdLocationOn, MdPhone, MdEmail, MdAccessTime, MdStore } from 'react-icons/md';
+import { MdArrowBack, MdLocationOn, MdPhone, MdEmail, MdAccessTime, MdStore, MdMap, MdClose } from 'react-icons/md';
 import Loader from '../components/ui/Loader';
 
 const ViewShop = () => {
@@ -13,6 +13,7 @@ const ViewShop = () => {
   const [shop, setShop] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('Overview');
+  const [showMapModal, setShowMapModal] = useState(false);
 
   const tabs = ['Overview', 'Owner', 'Location', 'Images'];
 
@@ -50,8 +51,6 @@ const ViewShop = () => {
     );
   }
 
-
-
   const InfoRow = ({ label, value, icon: Icon }) => (
     <div className="flex items-start gap-3 p-3 rounded-lg" 
          style={{ backgroundColor: colors.accent + '10' }}>
@@ -60,15 +59,15 @@ const ViewShop = () => {
         <p className="text-sm font-medium mb-1" style={{ color: colors.textSecondary }}>
           {label}
         </p>
-        <p className="text-base" style={{ color: colors.text }}>
+        <div className="text-base" style={{ color: colors.text }}>
           {value || 'N/A'}
-        </p>
+        </div>
       </div>
     </div>
   );
 
   return (
-    <div className="w-full h-full flex flex-col overflow-hidden">
+    <div className="w-full h-full flex flex-col overflow-hidden relative">
       {/* Header */}
       <div className="flex-none mb-6 flex items-center gap-4">
         <button
@@ -96,7 +95,7 @@ const ViewShop = () => {
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 text-sm font-medium transition-colors relative`}
+            className={`px-4 py-2 cursor-pointer text-sm font-medium transition-colors relative`}
             style={{ 
               color: activeTab === tab ? colors.primary : colors.textSecondary,
             }}
@@ -247,7 +246,24 @@ const ViewShop = () => {
                 <InfoRow label="Country" value={shop.country} />
                 <InfoRow 
                   label="Coordinates" 
-                  value={`${shop.location?.latitude}, ${shop.location?.longitude}`}
+                  value={
+                    <div className="flex items-center justify-between">
+                        <span>{`${shop.location?.latitude || ''}, ${shop.location?.longitude || ''}`}</span>
+                        {shop.location?.latitude && shop.location?.longitude && (
+                            <button
+                                onClick={() => setShowMapModal(true)}
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium cursor-pointer transition-all hover:opacity-90"
+                                style={{ 
+                                    backgroundColor: colors.primary,
+                                    color: colors.background
+                                }}
+                            >
+                                <MdMap size={16} />
+                                View Map
+                            </button>
+                        )}
+                    </div>
+                  }
                   icon={MdLocationOn}
                 />
               </div>
@@ -284,6 +300,47 @@ const ViewShop = () => {
            </div>
         )}
       </div>
+
+       {/* Map Modal */}
+       {showMapModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+            <div 
+                className="relative w-full max-w-4xl h-[80vh] rounded-xl overflow-hidden shadow-2xl flex flex-col"
+                style={{ backgroundColor: colors.background }}
+            >
+                {/* Modal Header */}
+                <div className="flex items-center justify-between p-4 border-b" style={{ borderColor: colors.accent + '30' }}>
+                    <div className="flex items-center gap-3">
+                        <MdLocationOn className="w-6 h-6" style={{ color: colors.primary }} />
+                        <div>
+                            <h3 className="text-lg font-bold" style={{ color: colors.text }}>Shop Location</h3>
+                            <p className="text-xs" style={{ color: colors.textSecondary }}> {`${shop.location?.latitude}, ${shop.location?.longitude}`}</p>
+                        </div>
+                    </div>
+                    <button 
+                        onClick={() => setShowMapModal(false)}
+                        className="p-2 cursor-pointer rounded-full hover:bg-black/5 transition-colors absolute top-4 right-4 z-10 bg-white shadow"
+                        // style={{ color: colors.text }}
+                    >
+                        <MdClose size={24} />
+                    </button>
+                </div>
+
+                {/* Map Iframe */}
+                <div className="flex-1 w-full h-full bg-gray-100">
+                    <iframe
+                        title="Shop Location"
+                        width="100%"
+                        height="100%"
+                        frameBorder="0"
+                        style={{ border: 0 }}
+                        src={`https://maps.google.com/maps?q=${shop.location?.latitude},${shop.location?.longitude}&z=15&output=embed`}
+                        allowFullScreen
+                    ></iframe>
+                </div>
+            </div>
+        </div>
+      )}
     </div>
   );
 };

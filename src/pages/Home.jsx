@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
-import { MdPeople, MdStorefront, MdCheckCircle, MdCancel } from 'react-icons/md';
+import { MdPeople, MdStorefront, MdCheckCircle, MdPerson } from 'react-icons/md';
 import { getEmployees } from '../apis/employee';
 import { getShops } from '../apis/shop';
 import Loader from '../components/ui/Loader';
@@ -13,12 +13,12 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState({ employees: [], shops: [] });
   
-  // Stats state (Total All Time)
+  // Stats state (Filtered)
   const [stats, setStats] = useState({
     totalEmployees: 0,
     totalShops: 0,
-    activeShops: 0,
-    inactiveShops: 0
+    activeEmployees: 0,
+    inactiveEmployees: 0
   });
 
   // Graph Data State (Filtered)
@@ -26,7 +26,7 @@ const Home = () => {
     categories: [],
     series: { employees: [], shops: [] },
     filteredCounts: { employees: 0, shops: 0 },
-    shopStatus: { active: 0, inactive: 0 }
+    employeeStatus: { active: 0, inactive: 0 }
   });
 
   // Calculate greeting
@@ -47,11 +47,6 @@ const Home = () => {
     // Dataset for Pie/Column charts (items in range)
     let filteredEmp = [];
     let filteredShops = [];
-
-    const isSameDate = (d1, d2) => 
-      d1.getDate() === d2.getDate() && 
-      d1.getMonth() === d2.getMonth() && 
-      d1.getFullYear() === d2.getFullYear();
 
     if (filterType === 'Day') {
       // Last 7 Days
@@ -154,15 +149,22 @@ const Home = () => {
         }
     }
 
-    // Pie Chart Data
-    const activeShops = filteredShops.filter(s => s.isActive).length;
-    const inactiveShops = filteredShops.length - activeShops;
+    // Pie Chart Data (Employee Status)
+    const activeEmployeesCount = filteredEmp.filter(e => e.isActive).length;
+    const inactiveEmployeesCount = filteredEmp.length - activeEmployeesCount;
+
+    setStats({
+        totalEmployees: filteredEmp.length,
+        totalShops: filteredShops.length,
+        activeEmployees: activeEmployeesCount,
+        inactiveEmployees: inactiveEmployeesCount
+    });
 
     setChartData({
         categories,
         series: { employees: empCounts, shops: shopCounts },
         filteredCounts: { employees: filteredEmp.length, shops: filteredShops.length },
-        shopStatus: { active: activeShops, inactive: inactiveShops }
+        employeeStatus: { active: activeEmployeesCount, inactive: inactiveEmployeesCount }
     });
   };
 
@@ -180,14 +182,6 @@ const Home = () => {
         const employees = employeesData.employees || [];
         
         setData({ employees, shops });
-
-        const activeShopsCount = shops.filter(s => s.isActive).length;
-        setStats({
-          totalEmployees: employees.length,
-          totalShops: shops.length,
-          activeShops: activeShopsCount,
-          inactiveShops: shops.length - activeShopsCount
-        });
 
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
@@ -240,11 +234,11 @@ const Home = () => {
     ]
   };
 
-  // Shop Status Pie Chart
-  const shopStatusChartOptions = {
+  // Employee Status Pie Chart
+  const employeeStatusChartOptions = {
     chart: { type: 'pie', backgroundColor: 'transparent', height: 300 },
-    title: { text: `New Shops Status (${filter})`, style: { color: colors.text } },
-    tooltip: { pointFormat: '<b>{point.y}</b> Shops ({point.percentage:.1f}%)' },
+    title: { text: `Employee Status (${filter})`, style: { color: colors.text } },
+    tooltip: { pointFormat: '<b>{point.y}</b> Employees ({point.percentage:.1f}%)' },
     plotOptions: {
       pie: {
         allowPointSelect: true,
@@ -256,11 +250,11 @@ const Home = () => {
     legend: { itemStyle: { color: colors.text }, itemHoverStyle: { color: colors.primary } },
     credits: { enabled: false },
     series: [{
-      name: 'Shops',
+      name: 'Employees',
       colorByPoint: true,
       data: [
-        { name: 'Active', y: chartData.shopStatus.active, color: '#22c55e' },
-        { name: 'Inactive', y: chartData.shopStatus.inactive, color: '#ef4444' }
+        { name: 'Active', y: chartData.employeeStatus.active, color: '#22c55e' },
+        { name: 'Inactive', y: chartData.employeeStatus.inactive, color: '#ef4444' }
       ]
     }]
   };
@@ -364,32 +358,32 @@ const Home = () => {
           <p className='text-sm' style={{ color: colors.textSecondary }}>Total Shops</p>
         </div>
 
-        {/* Active Shops */}
+        {/* Active Employees */}
         <div className='p-6 rounded-xl border shadow-sm transition-all hover:scale-105'
              style={{ backgroundColor: colors.background, borderColor: colors.accent + '30' }}>
           <div className='flex items-center justify-between mb-4'>
             <div className='p-3 rounded-lg' style={{ backgroundColor: '#22c55e20' }}>
-              <MdCheckCircle size={24} style={{ color: '#22c55e' }} />
+              <MdPerson size={24} style={{ color: '#22c55e' }} />
             </div>
           </div>
           <h3 className='text-3xl font-bold mb-1' style={{ color: colors.text }}>
-            {stats.activeShops}
+            {stats.activeEmployees}
           </h3>
-          <p className='text-sm' style={{ color: colors.textSecondary }}>Active Shops</p>
+          <p className='text-sm' style={{ color: colors.textSecondary }}>Active Employees</p>
         </div>
 
-        {/* Inactive Shops */}
+        {/* Inactive Employees */}
         <div className='p-6 rounded-xl border shadow-sm transition-all hover:scale-105'
              style={{ backgroundColor: colors.background, borderColor: colors.accent + '30' }}>
           <div className='flex items-center justify-between mb-4'>
             <div className='p-3 rounded-lg' style={{ backgroundColor: '#ef444420' }}>
-              <MdCancel size={24} style={{ color: '#ef4444' }} />
+              <MdPerson size={24} style={{ color: '#ef4444' }} />
             </div>
           </div>
           <h3 className='text-3xl font-bold mb-1' style={{ color: colors.text }}>
-            {stats.inactiveShops}
+            {stats.inactiveEmployees}
           </h3>
-          <p className='text-sm' style={{ color: colors.textSecondary }}>Inactive Shops</p>
+          <p className='text-sm' style={{ color: colors.textSecondary }}>Inactive Employees</p>
         </div>
       </div>
 
@@ -403,10 +397,10 @@ const Home = () => {
 
         {/* Bottom Split Charts */}
         <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
-          {/* Shop Status Chart */}
+          {/* Employee Status Chart */}
           <div className='p-6 rounded-xl border shadow-sm'
                style={{ backgroundColor: colors.background, borderColor: colors.accent + '30' }}>
-             <HighchartsReact highcharts={Highcharts} options={shopStatusChartOptions} />
+             <HighchartsReact highcharts={Highcharts} options={employeeStatusChartOptions} />
           </div>
 
           {/* Overview Chart */}

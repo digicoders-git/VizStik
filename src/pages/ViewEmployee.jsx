@@ -4,6 +4,7 @@ import { getEmployees } from '../apis/employee'
 import { toast } from 'react-toastify'
 import { useNavigate, useParams } from 'react-router-dom'
 import { MdArrowBack, MdEdit, MdPerson, MdEmail, MdWork, MdBusiness, MdPhone, MdAttachMoney } from 'react-icons/md'
+import Loader from '../components/ui/Loader'
 
 const ViewEmployee = () => {
   const { colors } = useTheme()
@@ -36,8 +37,8 @@ const ViewEmployee = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="text-lg" style={{ color: colors.text }}>Loading...</div>
+      <div className="flex justify-center items-center h-screen">
+        <Loader size={40}/>
       </div>
     )
   }

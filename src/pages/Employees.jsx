@@ -127,7 +127,7 @@ const Employees = () => {
         </div>
         <button
           onClick={() => navigate('/dashboard/employees/add')}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors"
+          className="flex cursor-pointer items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors"
           style={{ 
             backgroundColor: colors.primary, 
             color: colors.background 
@@ -321,10 +321,10 @@ const Employees = () => {
                   <td className="px-6 py-4 text-sm font-medium">
                     <button
                       onClick={() => navigate(`/dashboard/employees/${employee._id}/shops`)}
-                      className="hover:underline focus:outline-none"
+                      className="hover:underline cursor-pointer focus:outline-none"
                       style={{ color: colors.primary }}
                     >
-                      {employee.totalShops || 0}
+                      {employee.totalShops || 0} 
                     </button>
                   </td>
                   <td className="px-6 py-4">

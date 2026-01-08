@@ -12,7 +12,8 @@ const ManageShop = () => {
   const { colors } = useTheme();
   const navigate = useNavigate();
   
-  const [shops, setShops] = useState([]);
+  const [allShops, setAllShops] = useState([]);
+  const [shops, setShops] = useState([]); // Displayed shops
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -27,57 +28,64 @@ const ManageShop = () => {
   const [sortOrder, setSortOrder] = useState('desc'); // 'asc' or 'desc'
   const [totalShops, setTotalShops] = useState(0);
 
-  // Fetch shops
+  // Fetch all shops
   const fetchShops = async () => {
     try {
       setLoading(true);
-      const params = {
-        page: currentPage,
-        limit: limit,
-        sort: sortOrder 
-      };
-      
-      if (searchTerm) params.search = searchTerm;
-      if (cityFilter) params.city = cityFilter;
-      if (shopTypeFilter) params.shopType = shopTypeFilter;
-      
-      const data = await getShops(params);
-      
-      // Handle response structure depending on API
-      // Assuming API returns { shops: [], total: number, page: number, pages: number }
-      // Or similar structure. Adjusting based on user provided existing structure 'employees' example 
-      // which had { total: 2, employees: [...] }
+      const data = await getShops({});
       
       const fetchedShops = data.shops || [];
-      setShops(fetchedShops);
-      
-      const total = data.totalShops || data.total || 0;
-      setTotalShops(total);
-      setTotalPages(data.totalPages || Math.ceil(total / limit) || 1);
-
+      setAllShops(fetchedShops);
     } catch (error) {
       console.error('Error fetching shops:', error);
-      setShops([]);
+      setAllShops([]);
     } finally {
       setLoading(false);
     }
   };
 
-  // Debounce search
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      // Reset to page 1 on search change
-      setCurrentPage(1);
-      fetchShops();
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [searchTerm]);
-
-  // Fetch when filters/page/sort changes
+  // Initial Fetch
   useEffect(() => {
     fetchShops();
-  }, [currentPage, sortOrder, cityFilter, shopTypeFilter]);
+  }, []);
+
+  // Filter, Sort, Paginate Logic
+  useEffect(() => {
+    let result = [...allShops];
+
+    // 1. Filter
+    if (searchTerm) {
+      const lowerTerm = searchTerm.toLowerCase();
+      result = result.filter(shop => 
+        (shop.shopName && shop.shopName.toLowerCase().includes(lowerTerm)) || 
+        (shop.ownerName && shop.ownerName.toLowerCase().includes(lowerTerm)) || 
+        (shop.shopCode && shop.shopCode.toLowerCase().includes(lowerTerm))
+      );
+    }
+    if (cityFilter) {
+      result = result.filter(shop => shop.city && shop.city.toLowerCase().includes(cityFilter.toLowerCase()));
+    }
+    if (shopTypeFilter) {
+      result = result.filter(shop => shop.shopType && shop.shopType.toLowerCase().includes(shopTypeFilter.toLowerCase()));
+    }
+
+    // 2. Sort
+    result.sort((a, b) => {
+      const dateA = new Date(a.createdAt);
+      const dateB = new Date(b.createdAt);
+      return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+    });
+
+    // Update totals
+    setTotalShops(result.length);
+    setTotalPages(Math.ceil(result.length / limit) || 1);
+
+    // 3. Paginate
+    const startIndex = (currentPage - 1) * limit;
+    const paginated = result.slice(startIndex, startIndex + limit);
+    setShops(paginated);
+
+  }, [allShops, searchTerm, cityFilter, shopTypeFilter, sortOrder, currentPage, limit]);
 
   // Handle delete
   const handleDelete = async (id) => {
@@ -94,7 +102,7 @@ const ManageShop = () => {
         setDeletingId(id);
         try {
           await deleteShop(id);
-          await fetchShops();
+          await fetchShops(); // Refresh list
           Swal.fire(
             'Deleted!',
             'Shop has been deleted.',
@@ -459,7 +467,7 @@ const ManageShop = () => {
                                 {index > 0 && array[index - 1] !== page - 1 && <span className="px-2">...</span>}
                                 <button
                                     onClick={() => setCurrentPage(page)}
-                                    className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
+                                    className={`w-8 h-8 cursor-pointer rounded-lg text-sm font-medium transition-colors ${
                                         currentPage === page ? 'bg-primary text-white' : 'hover:bg-gray-100'
                                     }`}
                                     style={{
@@ -477,7 +485,7 @@ const ManageShop = () => {
                 <button
                     onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                     disabled={currentPage === totalPages}
-                    className="p-2 rounded-lg border disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="p-2 cursor-pointer rounded-lg border disabled:opacity-50 disabled:cursor-not-allowed"
                      style={{ 
                         borderColor: colors.accent + '30',
                         color: colors.text
