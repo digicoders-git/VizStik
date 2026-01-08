@@ -273,18 +273,14 @@ const ManageShop = () => {
         <span className="text-sm font-medium" style={{ color: colors.textSecondary }}>
           Total Shops:
         </span>
-        {/* {loading ? (
-          // <Loader size={20} />
-          ""
-        ) : ( */}
-          <span className="text-sm font-bold px-3 py-1 rounded-full" 
-                style={{ 
-                  backgroundColor: colors.primary + '20',
-                  color: colors.primary 
-                }}>
-            {loading ? (<Loader size={16} />):<span>{totalShops}</span>}
-          </span>
-        {/* )} */}
+        <span className="text-sm font-bold px-3 py-1 rounded-full flex items-center justify-center min-w-[30px]" 
+              style={{ 
+                backgroundColor: colors.primary + '20',
+                color: colors.primary,
+                minHeight: '28px'
+              }}>
+          {loading ? <Loader size={16} /> : totalShops}
+        </span>
       </div>
 
       {/* Table Container */}
@@ -330,10 +326,10 @@ const ManageShop = () => {
                   {sortOrder === 'asc' ? <MdArrowUpward size={16} /> : <MdArrowDownward size={16} />}
                 </div>
               </th>
-              <th className="px-4 py-3 text-center text-sm font-semibold border-b" 
+              {/* <th className="px-4 py-3 text-center text-sm font-semibold border-b" 
                   style={{ color: colors.text, borderColor: colors.accent + '30' }}>
                 Active
-              </th>
+              </th> */}
               <th className="px-4 py-3 text-center text-sm font-semibold border-b" 
                   style={{ color: colors.text, borderColor: colors.accent + '30' }}>
                 Actions
@@ -390,14 +386,14 @@ const ManageShop = () => {
                   <td className="px-4 py-3 text-sm" style={{ color: colors.text }}>
                     {formatDate(shop.createdAt)}
                   </td>
-                  <td className="px-4 py-3 text-center">
+                  {/* <td className="px-4 py-3 text-center">
                     <div className="flex justify-center">
                       <Toggle 
                         active={shop.isActive} 
                         onClick={() => handleToggleStatus(shop._id)}
                       />
                     </div>
-                  </td>
+                  </td> */}
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-center gap-2">
                       <button

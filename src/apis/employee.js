@@ -1,7 +1,18 @@
 import http from "./http";
 
-export const getEmployees = async () => {
-  const response = await http.get("/employee/get");
+export const getEmployees = async (params = {}) => {
+  const queryParams = new URLSearchParams();
+
+  Object.keys(params).forEach(key => {
+    if (params[key] !== undefined && params[key] !== '') {
+      queryParams.append(key, params[key]);
+    }
+  });
+
+  const queryString = queryParams.toString();
+  const url = queryString ? `/employee/get?${queryString}` : '/employee/get';
+
+  const response = await http.get(url);
   return response.data;
 };
 
@@ -10,7 +21,7 @@ export const createEmployee = async (employeeData) => {
   Object.keys(employeeData).forEach(key => {
     formData.append(key, employeeData[key]);
   });
-  
+
   const response = await http.post("/employee/create", formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
@@ -24,7 +35,7 @@ export const updateEmployee = async (id, employeeData) => {
   Object.keys(employeeData).forEach(key => {
     formData.append(key, employeeData[key]);
   });
-  
+
   const response = await http.put(`/employee/update/${id}`, formData, {
     headers: {
       'Content-Type': 'multipart/form-data',

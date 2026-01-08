@@ -289,9 +289,9 @@ const Dashboard = () => {
               <Clock />
             </div>
              <button onClick={() => setSettingsOpen(true)}
-                    className='p-2 cursor-pointer rounded-lg transition-colors'
+                    className='p-2  cursor-pointer rounded-lg transition-colors'
                     onMouseEnter={(e) => e.target.style.backgroundColor = colors.primary + '20'}
-                    onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}>
+                    onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'} style={{ color: colors.primary }}>
               <Settings className='w-5 h-5 md:w-6 md:h-6' />
             </button> 
             <div className='w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center'

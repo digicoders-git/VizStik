@@ -12,6 +12,9 @@ const ViewShop = () => {
   
   const [shop, setShop] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('Overview');
+
+  const tabs = ['Overview', 'Owner', 'Location', 'Images'];
 
   useEffect(() => {
     const fetchShop = async () => {
@@ -47,6 +50,8 @@ const ViewShop = () => {
     );
   }
 
+
+
   const InfoRow = ({ label, value, icon: Icon }) => (
     <div className="flex items-start gap-3 p-3 rounded-lg" 
          style={{ backgroundColor: colors.accent + '10' }}>
@@ -63,9 +68,9 @@ const ViewShop = () => {
   );
 
   return (
-    <div className="w-full h-full overflow-auto">
+    <div className="w-full h-full flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="mb-6 flex items-center gap-4">
+      <div className="flex-none mb-6 flex items-center gap-4">
         <button
           onClick={() => navigate('/dashboard/shops')}
           className="p-2 rounded-lg transition-all"
@@ -85,154 +90,199 @@ const ViewShop = () => {
         </div>
       </div>
 
-      {/* Shop Images */}
-      {shop.shopImages && shop.shopImages.length > 0 && (
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold mb-4" style={{ color: colors.text }}>
-            Shop Images
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {shop.shopImages.map((image, index) => (
-              <div key={index} className="rounded-lg overflow-hidden border" 
-                   style={{ borderColor: colors.accent + '30' }}>
-                <img 
-                  src={image.url} 
-                  alt={`Shop ${index + 1}`}
-                  className="w-full h-48 object-cover"
+      {/* Tabs */}
+      <div className="flex-none flex items-center gap-4 border-b mb-6" style={{ borderColor: colors.accent + '30' }}>
+        {tabs.map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`px-4 py-2 text-sm font-medium transition-colors relative`}
+            style={{ 
+              color: activeTab === tab ? colors.primary : colors.textSecondary,
+            }}
+          >
+            {tab}
+            {activeTab === tab && (
+              <div 
+                className="absolute bottom-0 left-0 w-full h-0.5" 
+                style={{ backgroundColor: colors.primary }} 
+              />
+            )}
+          </button>
+        ))}
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 overflow-auto">
+        {activeTab === 'Overview' && (
+          <div className="space-y-6">
+            {/* Basic Information */}
+            <div>
+              <h2 className="text-xl font-semibold mb-4" style={{ color: colors.text }}>
+                Basic Information
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <InfoRow label="Shop Name" value={shop.shopName} icon={MdStore} />
+                <InfoRow label="Shop Type" value={shop.shopType} icon={MdStore} />
+                <InfoRow label="Shop Code" value={shop.shopCode} />
+                <InfoRow label="GST Number" value={shop.gstNumber} />
+                <InfoRow label="Description" value={shop.description} />
+                <InfoRow 
+                  label="Status" 
+                  value={
+                    <div className="flex items-center gap-2">
+                      <span className={`px-3 py-1 rounded-full text-sm font-medium`}
+                            style={{ 
+                              backgroundColor: shop.isActive ? '#22C55E20' : '#EF444420',
+                              color: shop.isActive ? '#22C55E' : '#EF4444'
+                            }}>
+                        {shop.isActive ? 'Active' : 'Inactive'}
+                      </span>
+                      <span className={`px-3 py-1 rounded-full text-sm font-medium`}
+                            style={{ 
+                              backgroundColor: shop.isOpen ? '#22C55E20' : '#EF444420',
+                              color: shop.isOpen ? '#22C55E' : '#EF4444'
+                            }}>
+                        {shop.isOpen ? 'Open' : 'Closed'}
+                      </span>
+                    </div>
+                  }
                 />
               </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Basic Information */}
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold mb-4" style={{ color: colors.text }}>
-          Basic Information
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <InfoRow label="Shop Name" value={shop.shopName} icon={MdStore} />
-          <InfoRow label="Shop Type" value={shop.shopType} icon={MdStore} />
-          <InfoRow label="Shop Code" value={shop.shopCode} />
-          <InfoRow label="GST Number" value={shop.gstNumber} />
-          <InfoRow label="Description" value={shop.description} />
-          <InfoRow 
-            label="Status" 
-            value={
-              <div className="flex items-center gap-2">
-                <span className={`px-3 py-1 rounded-full text-sm font-medium`}
-                      style={{ 
-                        backgroundColor: shop.isActive ? '#22C55E20' : '#EF444420',
-                        color: shop.isActive ? '#22C55E' : '#EF4444'
-                      }}>
-                  {shop.isActive ? 'Active' : 'Inactive'}
-                </span>
-                <span className={`px-3 py-1 rounded-full text-sm font-medium`}
-                      style={{ 
-                        backgroundColor: shop.isOpen ? '#22C55E20' : '#EF444420',
-                        color: shop.isOpen ? '#22C55E' : '#EF4444'
-                      }}>
-                  {shop.isOpen ? 'Open' : 'Closed'}
-                </span>
-              </div>
-            }
-          />
-        </div>
-      </div>
-
-      {/* Owner Information */}
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold mb-4" style={{ color: colors.text }}>
-          Owner Information
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {shop.ownerImage && (
-            <div className="col-span-full flex justify-center mb-4">
-              <img 
-                src={shop.ownerImage.url} 
-                alt={shop.ownerName}
-                className="w-32 h-32 rounded-full object-cover border-4"
-                style={{ borderColor: colors.primary }}
-              />
             </div>
-          )}
-          <InfoRow label="Owner Name" value={shop.ownerName} />
-          <InfoRow label="Owner Phone" value={shop.ownerPhone} icon={MdPhone} />
-          <InfoRow label="Owner Email" value={shop.ownerEmail} icon={MdEmail} />
-        </div>
-      </div>
 
-      {/* Contact Information */}
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold mb-4" style={{ color: colors.text }}>
-          Contact Information
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <InfoRow label="Phone" value={shop.phone} icon={MdPhone} />
-          <InfoRow label="Alternate Phone" value={shop.alternatePhone} icon={MdPhone} />
-          <InfoRow label="Email" value={shop.email} icon={MdEmail} />
-        </div>
-      </div>
+            {/* Contact Information */}
+            <div>
+              <h2 className="text-xl font-semibold mb-4" style={{ color: colors.text }}>
+                Contact Information
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <InfoRow label="Phone" value={shop.phone} icon={MdPhone} />
+                <InfoRow label="Alternate Phone" value={shop.alternatePhone} icon={MdPhone} />
+                <InfoRow label="Email" value={shop.email} icon={MdEmail} />
+              </div>
+            </div>
 
-      {/* Location Information */}
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold mb-4" style={{ color: colors.text }}>
-          Location Information
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <InfoRow label="Address" value={shop.address} icon={MdLocationOn} />
-          <InfoRow label="City" value={shop.city} />
-          <InfoRow label="State" value={shop.state} />
-          <InfoRow label="Pincode" value={shop.pincode} />
-          <InfoRow label="Country" value={shop.country} />
-          <InfoRow 
-            label="Coordinates" 
-            value={`${shop.location?.latitude}, ${shop.location?.longitude}`}
-            icon={MdLocationOn}
-          />
-        </div>
-      </div>
+             {/* Timing Information */}
+            <div>
+              <h2 className="text-xl font-semibold mb-4" style={{ color: colors.text }}>
+                Timing Information
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <InfoRow label="Opening Time" value={shop.openingTime} icon={MdAccessTime} />
+                <InfoRow label="Closing Time" value={shop.closingTime} icon={MdAccessTime} />
+              </div>
+            </div>
 
-      {/* Timing Information */}
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold mb-4" style={{ color: colors.text }}>
-          Timing Information
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <InfoRow label="Opening Time" value={shop.openingTime} icon={MdAccessTime} />
-          <InfoRow label="Closing Time" value={shop.closingTime} icon={MdAccessTime} />
-        </div>
-      </div>
+            {/* Created By Information */}
+            {shop.createdBy && (
+              <div>
+                <h2 className="text-xl font-semibold mb-4" style={{ color: colors.text }}>
+                  Created By
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <InfoRow label="Name" value={shop.createdBy.name} />
+                  <InfoRow label="Email" value={shop.createdBy.email} icon={MdEmail} />
+                </div>
+              </div>
+            )}
 
-      {/* Created By Information */}
-      {shop.createdBy && (
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold mb-4" style={{ color: colors.text }}>
-            Created By
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <InfoRow label="Name" value={shop.createdBy.name} />
-            <InfoRow label="Email" value={shop.createdBy.email} icon={MdEmail} />
+            {/* Timestamps */}
+            <div>
+              <h2 className="text-xl font-semibold mb-4" style={{ color: colors.text }}>
+                Timestamps
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <InfoRow 
+                  label="Created At" 
+                  value={new Date(shop.createdAt).toLocaleString('en-IN')}
+                />
+                <InfoRow 
+                  label="Updated At" 
+                  value={new Date(shop.updatedAt).toLocaleString('en-IN')}
+                />
+              </div>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Timestamps */}
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold mb-4" style={{ color: colors.text }}>
-          Timestamps
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <InfoRow 
-            label="Created At" 
-            value={new Date(shop.createdAt).toLocaleString('en-IN')}
-          />
-          <InfoRow 
-            label="Updated At" 
-            value={new Date(shop.updatedAt).toLocaleString('en-IN')}
-          />
-        </div>
+        {activeTab === 'Owner' && (
+          <div className="space-y-6">
+             {/* Owner Information */}
+            <div>
+              <h2 className="text-xl font-semibold mb-4" style={{ color: colors.text }}>
+                Owner Information
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {shop.ownerImage && (
+                  <div className="col-span-full flex justify-center mb-4">
+                    <img 
+                      src={shop.ownerImage.url} 
+                      alt={shop.ownerName}
+                      className="w-32 h-32 rounded-full object-cover border-4"
+                      style={{ borderColor: colors.primary }}
+                    />
+                  </div>
+                )}
+                <InfoRow label="Owner Name" value={shop.ownerName} />
+                <InfoRow label="Owner Phone" value={shop.ownerPhone} icon={MdPhone} />
+                <InfoRow label="Owner Email" value={shop.ownerEmail} icon={MdEmail} />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'Location' && (
+           <div className="space-y-6">
+             {/* Location Information */}
+            <div>
+              <h2 className="text-xl font-semibold mb-4" style={{ color: colors.text }}>
+                Location Information
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <InfoRow label="Address" value={shop.address} icon={MdLocationOn} />
+                <InfoRow label="City" value={shop.city} />
+                <InfoRow label="State" value={shop.state} />
+                <InfoRow label="Pincode" value={shop.pincode} />
+                <InfoRow label="Country" value={shop.country} />
+                <InfoRow 
+                  label="Coordinates" 
+                  value={`${shop.location?.latitude}, ${shop.location?.longitude}`}
+                  icon={MdLocationOn}
+                />
+              </div>
+            </div>
+           </div>
+        )}
+        
+        {activeTab === 'Images' && (
+           <div className="space-y-6">
+              {/* Shop Images */}
+              {shop.shopImages && shop.shopImages.length > 0 ? (
+                <div>
+                  <h2 className="text-xl font-semibold mb-4" style={{ color: colors.text }}>
+                    Shop Images
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {shop.shopImages.map((image, index) => (
+                      <div key={index} className="rounded-lg overflow-hidden border" 
+                           style={{ borderColor: colors.accent + '30' }}>
+                        <img 
+                          src={image.url} 
+                          alt={`Shop ${index + 1}`}
+                          className="w-full h-48 object-cover"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                 <div className="flex items-center justify-center py-20">
+                     <p style={{ color: colors.textSecondary }}>No images available for this shop.</p>
+                 </div>
+              )}
+           </div>
+        )}
       </div>
     </div>
   );
