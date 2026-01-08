@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { getShops, deleteShop, toggleShopStatus } from '../apis/shop';
-import { MdSearch, MdDelete, MdVisibility, MdFilterList } from 'react-icons/md';
+import { MdSearch, MdDelete, MdVisibility, MdFilterList, MdArrowUpward, MdArrowDownward, MdChevronLeft, MdChevronRight } from 'react-icons/md';
 import Toggle from '../components/ui/Toggle';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
@@ -13,68 +13,71 @@ const ManageShop = () => {
   const navigate = useNavigate();
   
   const [shops, setShops] = useState([]);
-  const [filteredShops, setFilteredShops] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [cityFilter, setCityFilter] = useState('');
   const [shopTypeFilter, setShopTypeFilter] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  
+  // Pagination & Sorting states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [limit] = useState(5);
+  const [sortOrder, setSortOrder] = useState('desc'); // 'asc' or 'desc'
+  const [totalShops, setTotalShops] = useState(0);
 
   // Fetch shops
   const fetchShops = async () => {
     try {
       setLoading(true);
-      const params = {};
-      // Only use server-side search parameter
+      const params = {
+        page: currentPage,
+        limit: limit,
+        sort: sortOrder 
+      };
+      
       if (searchTerm) params.search = searchTerm;
+      if (cityFilter) params.city = cityFilter;
+      if (shopTypeFilter) params.shopType = shopTypeFilter;
       
       const data = await getShops(params);
-      let fetchedShops = data.shops || [];
       
+      // Handle response structure depending on API
+      // Assuming API returns { shops: [], total: number, page: number, pages: number }
+      // Or similar structure. Adjusting based on user provided existing structure 'employees' example 
+      // which had { total: 2, employees: [...] }
+      
+      const fetchedShops = data.shops || [];
       setShops(fetchedShops);
-      // Filter will be applied by useEffect
-      applyFilters(fetchedShops);
+      
+      const total = data.totalShops || data.total || 0;
+      setTotalShops(total);
+      setTotalPages(data.totalPages || Math.ceil(total / limit) || 1);
+
     } catch (error) {
       console.error('Error fetching shops:', error);
       setShops([]);
-      setFilteredShops([]);
     } finally {
       setLoading(false);
     }
   };
 
-  // Apply client-side filters
-  const applyFilters = (currentShops) => {
-    let result = [...currentShops];
-
-    if (cityFilter) {
-      result = result.filter(shop => 
-        shop.city?.toLowerCase().includes(cityFilter.toLowerCase())
-      );
-    }
-
-    if (shopTypeFilter) {
-      result = result.filter(shop => 
-        shop.shopType?.toLowerCase().includes(shopTypeFilter.toLowerCase())
-      );
-    }
-
-    setFilteredShops(result);
-  };
-
   // Debounce search
   useEffect(() => {
     const timer = setTimeout(() => {
+      // Reset to page 1 on search change
+      setCurrentPage(1);
       fetchShops();
     }, 500);
 
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  // Apply filters when filter inputs change
+  // Fetch when filters/page/sort changes
   useEffect(() => {
-    applyFilters(shops);
-  }, [cityFilter, shopTypeFilter, shops]);
+    fetchShops();
+  }, [currentPage, sortOrder, cityFilter, shopTypeFilter]);
 
   // Handle delete
   const handleDelete = async (id) => {
@@ -88,9 +91,10 @@ const ManageShop = () => {
       confirmButtonText: 'Yes, delete it!'
     }).then(async (result) => {
       if (result.isConfirmed) {
+        setDeletingId(id);
         try {
           await deleteShop(id);
-          fetchShops();
+          await fetchShops();
           Swal.fire(
             'Deleted!',
             'Shop has been deleted.',
@@ -103,6 +107,8 @@ const ManageShop = () => {
             'Failed to delete shop.',
             'error'
           )
+        } finally {
+            setDeletingId(null);
         }
       }
     })
@@ -113,7 +119,6 @@ const ManageShop = () => {
     try {
       await toggleShopStatus(id);
       fetchShops();
-      // Optional: Success toast or small alert if needed, but usually toggles are swift.
     } catch (error) {
       console.error('Error toggling shop status:', error);
       Swal.fire(
@@ -137,6 +142,17 @@ const ManageShop = () => {
       month: 'short',
       year: 'numeric'
     });
+  };
+
+  const handleSort = () => {
+    setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
+  };
+
+  const clearFilters = () => {
+    setCityFilter('');
+    setShopTypeFilter('');
+    setSearchTerm('');
+    setCurrentPage(1);
   };
 
   return (
@@ -204,7 +220,10 @@ const ManageShop = () => {
                 type="text"
                 placeholder="Filter by city..."
                 value={cityFilter}
-                onChange={(e) => setCityFilter(e.target.value)}
+                onChange={(e) => {
+                  setCityFilter(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="w-full px-4 py-2 rounded-lg border outline-none"
                 style={{
                   backgroundColor: colors.background,
@@ -221,7 +240,10 @@ const ManageShop = () => {
                 type="text"
                 placeholder="Filter by shop type..."
                 value={shopTypeFilter}
-                onChange={(e) => setShopTypeFilter(e.target.value)}
+                onChange={(e) => {
+                  setShopTypeFilter(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="w-full px-4 py-2 rounded-lg border outline-none"
                 style={{
                   backgroundColor: colors.background,
@@ -232,11 +254,7 @@ const ManageShop = () => {
             </div>
             <div className="flex items-end">
               <button
-                onClick={() => {
-                  setCityFilter('');
-                  setShopTypeFilter('');
-                  setSearchTerm('');
-                }}
+                onClick={clearFilters}
                 className="px-4 cursor-pointer py-2 rounded-lg transition-all"
                 style={{
                   backgroundColor: colors.primary + '20',
@@ -255,13 +273,18 @@ const ManageShop = () => {
         <span className="text-sm font-medium" style={{ color: colors.textSecondary }}>
           Total Shops:
         </span>
-        <span className="text-sm font-bold px-3 py-1 rounded-full" 
-              style={{ 
-                backgroundColor: colors.primary + '20',
-                color: colors.primary 
-              }}>
-          {filteredShops.length}
-        </span>
+        {/* {loading ? (
+          // <Loader size={20} />
+          ""
+        ) : ( */}
+          <span className="text-sm font-bold px-3 py-1 rounded-full" 
+                style={{ 
+                  backgroundColor: colors.primary + '20',
+                  color: colors.primary 
+                }}>
+            {loading ? (<Loader size={16} />):<span>{totalShops}</span>}
+          </span>
+        {/* )} */}
       </div>
 
       {/* Table Container */}
@@ -299,9 +322,13 @@ const ManageShop = () => {
                   style={{ color: colors.text, borderColor: colors.accent + '30' }}>
                 Phone
               </th>
-              <th className="px-4 py-3 text-left text-sm font-semibold border-b" 
+              <th className="px-4 py-3 text-left text-sm font-semibold border-b cursor-pointer hover:bg-opacity-50 transition-colors" 
+                  onClick={handleSort}
                   style={{ color: colors.text, borderColor: colors.accent + '30' }}>
-                Created At
+                <div className="flex items-center gap-1">
+                  Created At
+                  {sortOrder === 'asc' ? <MdArrowUpward size={16} /> : <MdArrowDownward size={16} />}
+                </div>
               </th>
               <th className="px-4 py-3 text-center text-sm font-semibold border-b" 
                   style={{ color: colors.text, borderColor: colors.accent + '30' }}>
@@ -320,21 +347,21 @@ const ManageShop = () => {
                   <Loader size={40} />
                 </td>
               </tr>
-            ) : filteredShops.length === 0 ? (
+            ) : shops.length === 0 ? (
               <tr>
                 <td colSpan="10" className="px-4 py-8 text-center" style={{ color: colors.textSecondary }}>
                   No shops found
                 </td>
               </tr>
             ) : (
-              filteredShops.map((shop, index) => (
+              shops.map((shop, index) => (
                 <tr key={shop._id} 
                     className="border-b transition-colors hover:bg-opacity-50"
                     style={{ borderColor: colors.accent + '20' }}
                     onMouseEnter={(e) => e.currentTarget.style.backgroundColor = colors.accent + '10'}
                     onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
                   <td className="px-4 py-3 text-sm" style={{ color: colors.text }}>
-                    {index + 1}
+                    {(currentPage - 1) * limit + index + 1}
                   </td>
                   <td className="px-4 py-3 text-sm font-medium" style={{ color: colors.primary }}>
                     {shop.shopCode}
@@ -385,13 +412,18 @@ const ManageShop = () => {
                       </button>
                       <button
                         onClick={() => handleDelete(shop._id)}
-                        className="p-2 cursor-pointer rounded-lg transition-all"
-                        style={{ color: '#DC2626' }}
+                        className="p-2 cursor-pointer rounded-lg transition-all flex items-center justify-center"
+                        disabled={deletingId === shop._id}
+                        style={{ 
+                          color: '#DC2626',
+                          width: '32px',
+                          height: '32px'
+                         }}
                         onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#DC262620'}
                         onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                         title="Delete Shop"
                       >
-                        <MdDelete className="w-5 h-5" />
+                         {deletingId === shop._id ? <Loader size={16} color="#DC2626" /> : <MdDelete className="w-5 h-5" />}
                       </button>
                     </div>
                   </td>
@@ -401,8 +433,68 @@ const ManageShop = () => {
           </tbody>
         </table>
       </div>
+
+      {/* Pagination Controls */}
+      {!loading && totalPages > 1 && (
+        <div className="mt-4 flex items-center justify-between" style={{ color: colors.text }}>
+            <div className="text-sm">
+                Showing {(currentPage - 1) * limit + 1} to {Math.min(currentPage * limit, totalShops)} of {totalShops} entries
+            </div>
+            <div className="flex items-center gap-2">
+                <button
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="p-2 rounded-lg border disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{ 
+                        borderColor: colors.accent + '30',
+                        color: colors.text
+                    }}
+                >
+                    <MdChevronLeft size={20} />
+                </button>
+                <div className="flex gap-1">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                        .filter(page => {
+                            // Logic to show limited page numbers: current, first, last, range around current
+                            return page === 1 || page === totalPages || Math.abs(page - currentPage) <= 1;
+                        })
+                        .map((page, index, array) => (
+                            <React.Fragment key={page}>
+                                {index > 0 && array[index - 1] !== page - 1 && <span className="px-2">...</span>}
+                                <button
+                                    onClick={() => setCurrentPage(page)}
+                                    className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
+                                        currentPage === page ? 'bg-primary text-white' : 'hover:bg-gray-100'
+                                    }`}
+                                    style={{
+                                        backgroundColor: currentPage === page ? colors.primary : 'transparent',
+                                        color: currentPage === page ? colors.background : colors.text,
+                                        border: currentPage !== page ? `1px solid ${colors.accent}30` : 'none'
+                                    }}
+                                >
+                                    {page}
+                                </button>
+                            </React.Fragment>
+                        ))
+                    }
+                </div>
+                <button
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className="p-2 rounded-lg border disabled:opacity-50 disabled:cursor-not-allowed"
+                     style={{ 
+                        borderColor: colors.accent + '30',
+                        color: colors.text
+                    }}
+                >
+                    <MdChevronRight size={20} />
+                </button>
+            </div>
+        </div>
+      )}
     </div>
   );
 };
 
 export default ManageShop;
+

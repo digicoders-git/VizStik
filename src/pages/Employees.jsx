@@ -13,6 +13,7 @@ const Employees = () => {
   const navigate = useNavigate()
   const [employees, setEmployees] = useState([])
   const [loading, setLoading] = useState(true)
+  const [deletingId, setDeletingId] = useState(null)
   const [active, setactive] = useState(true)
 
   useEffect(() => {
@@ -46,9 +47,10 @@ const Employees = () => {
       confirmButtonText: 'Yes, delete it!'
     }).then(async (result) => {
       if (result.isConfirmed) {
+        setDeletingId(id);
         try {
           await deleteEmployee(id)
-          fetchEmployees()
+          await fetchEmployees()
           Swal.fire(
             'Deleted!',
             'Employee has been deleted.',
@@ -60,6 +62,8 @@ const Employees = () => {
             'Failed to delete employee.',
             'error'
           )
+        } finally {
+          setDeletingId(null);
         }
       }
     })
@@ -127,6 +131,9 @@ const Employees = () => {
                   Phone
                 </th>
                 <th className="px-6 py-3 text-left text-sm font-medium" style={{ color: colors.text }}>
+                  Total Shops
+                </th>
+                <th className="px-6 py-3 text-left text-sm font-medium" style={{ color: colors.text }}>
                   Status
                 </th>
                 <th className="px-6 py-3 text-left text-sm font-medium" style={{ color: colors.text }}>
@@ -162,6 +169,15 @@ const Employees = () => {
                   <td className="px-6 py-4 text-sm" style={{ color: colors.text }}>
                     {employee.phone}
                   </td>
+                  <td className="px-6 py-4 text-sm font-medium">
+                    <button
+                      onClick={() => navigate(`/dashboard/employees/${employee._id}/shops`)}
+                      className="hover:underline focus:outline-none"
+                      style={{ color: colors.primary }}
+                    >
+                      {employee.totalShops || 0}
+                    </button>
+                  </td>
                   <td className="px-6 py-4">
                     <Toggle 
                       active={employee.isActive}
@@ -194,14 +210,17 @@ const Employees = () => {
                       </button>
                       <button
                         onClick={() => handleDelete(employee._id)}
-                        className="p-2 cursor-pointer rounded-lg transition-colors"
+                        className="p-2 cursor-pointer rounded-lg transition-colors flex items-center justify-center"
+                        disabled={deletingId === employee._id}
                         style={{ 
                           backgroundColor: '#ef444420',
-                          color: '#ef4444' 
+                          color: '#ef4444',
+                          width: '32px',
+                          height: '32px'
                         }}
                         title="Delete"
                       >
-                        <MdDelete size={16} />
+                        {deletingId === employee._id ? <Loader size={16} color="#ef4444" /> : <MdDelete size={16} />}
                       </button>
                     </div>
                   </td>

@@ -4,9 +4,11 @@ import http from "./http";
 export const getShops = async (params = {}) => {
   const queryParams = new URLSearchParams();
 
-  if (params.city) queryParams.append('city', params.city);
-  if (params.shopType) queryParams.append('shopType', params.shopType);
-  if (params.search) queryParams.append('search', params.search);
+  Object.keys(params).forEach(key => {
+    if (params[key] !== undefined && params[key] !== '') {
+      queryParams.append(key, params[key]);
+    }
+  });
 
   const queryString = queryParams.toString();
   const url = queryString ? `/shop/get?${queryString}` : '/shop/get';
