@@ -109,7 +109,7 @@ const Profile = () => {
         <div className="flex items-center gap-4">
              <button
                onClick={() => navigate(-1)}
-               className="p-2 cursor-pointer rounded-lg transition-colors"
+               className="p-2 cursor-pointer rounded transition-colors"
                style={{ 
                  backgroundColor: colors.accent + '20',
                  color: colors.text 
@@ -125,7 +125,7 @@ const Profile = () => {
         {!isEditing && (
           <button
             onClick={() => setIsEditing(true)}
-            className="flex cursor-pointer items-center gap-2 px-6 py-2.5 rounded-xl font-medium transition-all hover:scale-105 shadow-sm"
+            className="flex cursor-pointer items-center gap-2 px-6 py-2.5 rounded font-medium transition-all hover:scale-105 shadow-sm"
             style={{ backgroundColor: colors.primary, color: colors.background }}
           >
             <MdEdit size={20} />
@@ -137,7 +137,7 @@ const Profile = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column: Profile Card */}
         <div className="lg:col-span-1">
-          <div className="rounded-2xl p-6 border shadow-sm flex flex-col items-center text-center"
+          <div className="rounded p-6 border shadow-sm flex flex-col items-center text-center"
                style={{ backgroundColor: colors.background, borderColor: colors.accent + '30' }}>
             
             <div className="relative mb-4 group">
@@ -167,7 +167,7 @@ const Profile = () => {
             <h2 className="text-xl font-bold mb-1" style={{ color: colors.text }}>{adminData.name}</h2>
             <p className="text-sm mb-4" style={{ color: colors.textSecondary }}>Administrator</p>
              
-            <div className="w-full py-3 rounded-xl mb-2 flex items-center justify-center gap-2"
+            <div className="w-full py-3 rounded mb-2 flex items-center justify-center gap-2"
                  style={{ backgroundColor: colors.accent + '10' }}>
                  <div className={`w-2 h-2 rounded-full bg-green-500`}></div>
                  <span className="text-sm font-medium" style={{ color: colors.text }}>Active Status</span>
@@ -177,7 +177,7 @@ const Profile = () => {
 
         {/* Right Column: Details/Edit Form */}
         <div className="lg:col-span-2">
-            <div className="rounded-2xl p-8 border shadow-sm"
+            <div className="rounded p-8 border shadow-sm"
                  style={{ backgroundColor: colors.background, borderColor: colors.accent + '30' }}>
                 
                 <h3 className="text-xl font-bold mb-6" style={{ color: colors.text }}>Personal Details</h3>
@@ -195,7 +195,7 @@ const Profile = () => {
                                 value={isEditing ? formData.name : adminData.name}
                                 onChange={(e) => setFormData({...formData, name: e.target.value})}
                                 disabled={!isEditing}
-                                className={`w-full pl-12 pr-4 py-3 rounded-xl border outline-none transition-all ${!isEditing ? 'cursor-default focus:ring-2 focus:ring-primary' : ''}`}
+                                className={`w-full pl-12 pr-4 py-3 rounded border outline-none transition-all ${!isEditing ? 'cursor-default focus:ring-2 focus:ring-primary' : ''}`}
                                 style={{ 
                                     backgroundColor: isEditing ? colors.background : colors.accent + '05',
                                     borderColor: colors.accent + '30',
@@ -217,7 +217,7 @@ const Profile = () => {
                                 value={isEditing ? formData.email : adminData.email}
                                 onChange={(e) => setFormData({...formData, email: e.target.value})}
                                 disabled={!isEditing}
-                                className={`w-full pl-12 pr-4 py-3 rounded-xl border outline-none transition-all ${!isEditing ? 'cursor-default focus:ring-2 focus:ring-primary' : ''}`}
+                                className={`w-full pl-12 pr-4 py-3 rounded border outline-none transition-all ${!isEditing ? 'cursor-default focus:ring-2 focus:ring-primary' : ''}`}
                                 style={{ 
                                     backgroundColor: isEditing ? colors.background : colors.accent + '05',
                                     borderColor: colors.accent + '30',
@@ -240,7 +240,7 @@ const Profile = () => {
                                     value={formData.password}
                                     onChange={(e) => setFormData({...formData, password: e.target.value})}
                                     placeholder="Enter new password"
-                                    className={`w-full pl-12 pr-4 py-3 rounded-xl border outline-none transition-all focus:ring-2 focus:ring-primary`}
+                                    className={`w-full pl-12 pr-4 py-3 rounded border outline-none transition-all focus:ring-2 focus:ring-primary`}
                                     style={{ 
                                         backgroundColor: colors.background,
                                         borderColor: colors.accent + '30',
@@ -257,7 +257,7 @@ const Profile = () => {
                              <label className="block text-sm font-medium mb-2" style={{ color: colors.textSecondary }}>
                                 Joined Date
                             </label>
-                            <div className="px-4 py-3 rounded-xl border"
+                            <div className="px-4 py-3 rounded border"
                                  style={{ borderColor: colors.accent + '20', color: colors.text }}>
                                 {new Date(adminData.createdAt).toLocaleDateString()}
                             </div>
@@ -266,7 +266,7 @@ const Profile = () => {
                              <label className="block text-sm font-medium mb-2" style={{ color: colors.textSecondary }}>
                                 Last Updated
                             </label>
-                            <div className="px-4 py-3 rounded-xl border"
+                            <div className="px-4 py-3 rounded border"
                                  style={{ borderColor: colors.accent + '20', color: colors.text }}>
                                 {new Date(adminData.updatedAt).toLocaleDateString()}
                             </div>
@@ -288,7 +288,7 @@ const Profile = () => {
                                     });
                                     setPreviewImage(adminData.profilePhoto);
                                 }}
-                                className="px-6 py-2.5 rounded-xl font-medium transition-colors cursor-pointer"
+                                className="px-6 py-2.5 rounded font-medium transition-colors cursor-pointer"
                                 style={{ backgroundColor: colors.accent + '20', color: colors.text }}
                             >
                                 Cancel
@@ -296,7 +296,7 @@ const Profile = () => {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="flex items-center gap-2 px-8 py-2.5 rounded-xl font-medium transition-all shadow-md hover:shadow-lg cursor-pointer"
+                                className="flex items-center gap-2 px-8 py-2.5 rounded font-medium transition-all shadow-md hover:shadow-lg cursor-pointer"
                                 style={{ backgroundColor: colors.primary, color: colors.background }}
                             >
                                 {loading ? <Loader size={20} /> : (

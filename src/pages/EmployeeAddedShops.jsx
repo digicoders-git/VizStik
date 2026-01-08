@@ -55,7 +55,7 @@ const EmployeeAddedShops = () => {
       <div className="flex items-center gap-4 mb-6">
         <button
           onClick={() => navigate(-1)}
-          className="p-2 cursor-pointer rounded-lg transition-colors"
+          className="p-2 cursor-pointer rounded transition-colors"
           style={{ 
             backgroundColor: colors.accent + '20',
             color: colors.text 
@@ -75,7 +75,7 @@ const EmployeeAddedShops = () => {
 
       {/* Employee Details Card */}
       <div 
-        className="mb-8 p-6 rounded-lg border shadow-sm flex flex-wrap items-center gap-6"
+        className="mb-8 p-6 rounded border shadow-sm flex flex-wrap items-center gap-6"
         style={{ 
           backgroundColor: colors.background, 
           borderColor: colors.accent + '30' 
@@ -122,7 +122,7 @@ const EmployeeAddedShops = () => {
 
       {/* Shops Table */}
       <div 
-        className="rounded-lg border shadow-sm overflow-hidden"
+        className="rounded border shadow-sm overflow-hidden"
         style={{ 
           backgroundColor: colors.background, 
           borderColor: colors.accent + '30' 
@@ -170,7 +170,7 @@ const EmployeeAddedShops = () => {
                     <td className="px-6 py-4 text-sm" style={{ color: colors.text }}>
                       <div className="flex items-center gap-3">
                         <div 
-                            className="p-2 rounded-lg"
+                            className="p-2 rounded"
                             style={{ backgroundColor: colors.primary + '10' }}
                         >
                             <MdStore size={20} style={{ color: colors.primary }} />
@@ -215,7 +215,7 @@ const EmployeeAddedShops = () => {
                     <td className="px-6 py-4 text-sm">
                       <button
                         onClick={() => navigate(`/dashboard/shops/view/${shop._id}`)}
-                        className="px-3 cursor-pointer py-1 rounded-lg text-xs font-medium border transition-colors hover:bg-opacity-80"
+                        className="px-3 cursor-pointer py-1 rounded text-xs font-medium border transition-colors hover:bg-opacity-80"
                         style={{ 
                           color: colors.primary,
                           borderColor: colors.primary
@@ -248,7 +248,7 @@ const EmployeeAddedShops = () => {
                 <button
                     onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                     disabled={currentPage === 1}
-                    className="p-2 rounded-lg border disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="p-2 rounded border disabled:opacity-50 disabled:cursor-not-allowed"
                      style={{ 
                         borderColor: colors.accent + '30',
                         color: colors.text
@@ -267,7 +267,7 @@ const EmployeeAddedShops = () => {
                                 {index > 0 && array[index - 1] !== page - 1 && <span className="px-2">...</span>}
                                 <button
                                     onClick={() => setCurrentPage(page)}
-                                    className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
+                                    className={`w-8 h-8 rounded text-sm font-medium transition-colors ${
                                         currentPage === page ? 'bg-primary text-white' : 'hover:bg-gray-100'
                                     }`}
                                     style={{
@@ -285,7 +285,7 @@ const EmployeeAddedShops = () => {
                 <button
                     onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(employee.addedShops.length / itemsPerPage)))}
                     disabled={currentPage === Math.ceil(employee.addedShops.length / itemsPerPage)}
-                    className="p-2 rounded-lg border disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="p-2 rounded border disabled:opacity-50 disabled:cursor-not-allowed"
                      style={{ 
                         borderColor: colors.accent + '30',
                         color: colors.text

@@ -57,7 +57,7 @@ const ViewEmployee = () => {
         <div className="flex items-center gap-4">
           <button
             onClick={() => navigate(-1)}
-            className="p-2 cursor-pointer rounded-lg transition-colors"
+            className="p-2 cursor-pointer rounded transition-colors"
             style={{ 
               backgroundColor: colors.accent + '20',
               color: colors.text 
@@ -72,7 +72,7 @@ const ViewEmployee = () => {
         
         <button
           onClick={() => navigate(`/dashboard/employees/edit/${id}`)}
-          className="flex cursor-pointer items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors"
+          className="flex cursor-pointer items-center gap-2 px-4 py-2 rounded font-medium transition-colors"
           style={{ 
             backgroundColor: colors.primary, 
             color: colors.background 
@@ -84,7 +84,7 @@ const ViewEmployee = () => {
       </div>
 
       <div 
-        className="w-full rounded-lg border shadow-sm p-6"
+        className="w-full rounded border shadow-sm p-6"
         style={{ 
           backgroundColor: colors.background, 
           borderColor: colors.accent + '30' 
@@ -185,7 +185,7 @@ const ViewEmployee = () => {
                     <img 
                       src={employee.profilePhoto.url} 
                       alt="Profile" 
-                      className="w-32 h-32 rounded-lg object-cover mt-2"
+                      className="w-32 h-32 rounded object-cover mt-2"
                     />
                   </div>
                 </div>

@@ -127,7 +127,7 @@ const Employees = () => {
         </div>
         <button
           onClick={() => navigate('/dashboard/employees/add')}
-          className="flex cursor-pointer items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors"
+          className="flex cursor-pointer items-center gap-2 px-4 py-2 rounded font-medium transition-colors"
           style={{ 
             backgroundColor: colors.primary, 
             color: colors.background 
@@ -152,7 +152,7 @@ const Employees = () => {
               placeholder="Search by name, email or phone..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-lg border outline-none transition-all"
+              className="w-full pl-10 pr-4 py-2.5 rounded border outline-none transition-all"
               style={{
                 backgroundColor: colors.background,
                 borderColor: colors.accent + '30',
@@ -164,7 +164,7 @@ const Employees = () => {
           {/* Filter Toggle Button */}
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="flex cursor-pointer items-center gap-2 px-4 py-2.5 rounded-lg border transition-all"
+            className="flex cursor-pointer items-center gap-2 px-4 py-2.5 rounded border transition-all"
             style={{
               backgroundColor: showFilters ? colors.primary + '20' : colors.background,
               borderColor: colors.accent + '30',
@@ -178,7 +178,7 @@ const Employees = () => {
 
         {/* Filter Options */}
         {showFilters && (
-          <div className="flex flex-col md:flex-row gap-4 p-4 rounded-lg border" 
+          <div className="flex flex-col md:flex-row gap-4 p-4 rounded border" 
                style={{ 
                  backgroundColor: colors.sidebar || colors.background,
                  borderColor: colors.accent + '30'
@@ -193,7 +193,7 @@ const Employees = () => {
                     setActiveFilter(e.target.value)
                     setCurrentPage(1)
                 }}
-                className="w-full px-4 py-2 rounded-lg border outline-none cursor-pointer"
+                className="w-full px-4 py-2 rounded border outline-none cursor-pointer"
                 style={{
                   backgroundColor: colors.background,
                   borderColor: colors.accent + '30',
@@ -209,7 +209,7 @@ const Employees = () => {
             <div className="flex items-end">
               <button
                 onClick={clearFilters}
-                className="px-4 cursor-pointer py-2 rounded-lg transition-all"
+                className="px-4 cursor-pointer py-2 rounded transition-all"
                 style={{
                   backgroundColor: colors.primary + '20',
                   color: colors.primary
@@ -238,7 +238,7 @@ const Employees = () => {
       </div>
 
       <div 
-        className="rounded-lg border shadow-sm overflow-hidden"
+        className="rounded border shadow-sm overflow-hidden"
         style={{ 
           backgroundColor: colors.background, 
           borderColor: colors.accent + '30' 
@@ -337,7 +337,7 @@ const Employees = () => {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => navigate(`/dashboard/employees/view/${employee._id}`)}
-                        className="p-2 cursor-pointer rounded-lg transition-colors"
+                        className="p-2 cursor-pointer rounded transition-colors"
                         style={{ 
                           backgroundColor: colors.primary + '20',
                           color: colors.primary 
@@ -348,7 +348,7 @@ const Employees = () => {
                       </button>
                       <button
                         onClick={() => navigate(`/dashboard/employees/edit/${employee._id}`)}
-                        className="p-2 cursor-pointer rounded-lg transition-colors"
+                        className="p-2 cursor-pointer rounded transition-colors"
                         style={{ 
                           backgroundColor: '#f59e0b20',
                           color: '#f59e0b' 
@@ -359,7 +359,7 @@ const Employees = () => {
                       </button>
                       <button
                         onClick={() => handleDelete(employee._id)}
-                        className="p-2 cursor-pointer rounded-lg transition-colors flex items-center justify-center"
+                        className="p-2 cursor-pointer rounded transition-colors flex items-center justify-center"
                         disabled={deletingId === employee._id}
                         style={{ 
                           backgroundColor: '#ef444420',
@@ -391,7 +391,7 @@ const Employees = () => {
                 <button
                     onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                     disabled={currentPage === 1}
-                    className="p-2 rounded-lg border disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="p-2 rounded border disabled:opacity-50 disabled:cursor-not-allowed"
                      style={{ 
                         borderColor: colors.accent + '30',
                         color: colors.text
@@ -409,7 +409,7 @@ const Employees = () => {
                                 {index > 0 && array[index - 1] !== page - 1 && <span className="px-2">...</span>}
                                 <button
                                     onClick={() => setCurrentPage(page)}
-                                    className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
+                                    className={`w-8 h-8 rounded text-sm font-medium transition-colors ${
                                         currentPage === page ? 'bg-primary text-white' : 'hover:bg-gray-100'
                                     }`}
                                     style={{
@@ -427,7 +427,7 @@ const Employees = () => {
                 <button
                     onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                     disabled={currentPage === totalPages}
-                    className="p-2 rounded-lg border disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="p-2 rounded border disabled:opacity-50 disabled:cursor-not-allowed"
                      style={{ 
                         borderColor: colors.accent + '30',
                         color: colors.text

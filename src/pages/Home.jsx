@@ -308,13 +308,13 @@ const Home = () => {
         </div>
         
         {/* Global Filter */}
-        <div className='flex items-center bg-gray-100/10 p-1 rounded-lg border' 
+        <div className='flex items-center bg-gray-100/10 p-1 rounded border' 
              style={{ borderColor: colors.accent + '30', backgroundColor: colors.accent + '10' }}>
           {['Day', 'Week', 'Month', 'Year'].map((item) => (
             <button
               key={item}
               onClick={() => setFilter(item)}
-              className={`px-4 cursor-pointer py-1.5 rounded-md text-sm font-medium transition-all ${
+              className={`px-4 cursor-pointer py-1.5 rounded text-sm font-medium transition-all ${
                 filter === item ? 'shadow-sm' : 'hover:bg-black/5'
               }`}
               style={{
@@ -331,10 +331,10 @@ const Home = () => {
       {/* Stats Grid */}
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>
         {/* Total Employees */}
-        <div className='p-6 rounded-xl border shadow-sm transition-all hover:scale-105'
+        <div className='p-6 rounded border shadow-sm transition-all hover:scale-105'
              style={{ backgroundColor: colors.background, borderColor: colors.accent + '30' }}>
           <div className='flex items-center justify-between mb-4'>
-            <div className='p-3 rounded-lg' style={{ backgroundColor: colors.primary + '20' }}>
+            <div className='p-3 rounded' style={{ backgroundColor: colors.primary + '20' }}>
               <MdPeople size={24} style={{ color: colors.primary }} />
             </div>
           </div>
@@ -345,10 +345,10 @@ const Home = () => {
         </div>
 
         {/* Total Shops */}
-        <div className='p-6 rounded-xl border shadow-sm transition-all hover:scale-105'
+        <div className='p-6 rounded border shadow-sm transition-all hover:scale-105'
              style={{ backgroundColor: colors.background, borderColor: colors.accent + '30' }}>
           <div className='flex items-center justify-between mb-4'>
-            <div className='p-3 rounded-lg' style={{ backgroundColor: '#f59e0b20' }}>
+            <div className='p-3 rounded' style={{ backgroundColor: '#f59e0b20' }}>
               <MdStorefront size={24} style={{ color: '#f59e0b' }} />
             </div>
           </div>
@@ -359,10 +359,10 @@ const Home = () => {
         </div>
 
         {/* Active Employees */}
-        <div className='p-6 rounded-xl border shadow-sm transition-all hover:scale-105'
+        <div className='p-6 rounded border shadow-sm transition-all hover:scale-105'
              style={{ backgroundColor: colors.background, borderColor: colors.accent + '30' }}>
           <div className='flex items-center justify-between mb-4'>
-            <div className='p-3 rounded-lg' style={{ backgroundColor: '#22c55e20' }}>
+            <div className='p-3 rounded' style={{ backgroundColor: '#22c55e20' }}>
               <MdPerson size={24} style={{ color: '#22c55e' }} />
             </div>
           </div>
@@ -373,10 +373,10 @@ const Home = () => {
         </div>
 
         {/* Inactive Employees */}
-        <div className='p-6 rounded-xl border shadow-sm transition-all hover:scale-105'
+        <div className='p-6 rounded border shadow-sm transition-all hover:scale-105'
              style={{ backgroundColor: colors.background, borderColor: colors.accent + '30' }}>
           <div className='flex items-center justify-between mb-4'>
-            <div className='p-3 rounded-lg' style={{ backgroundColor: '#ef444420' }}>
+            <div className='p-3 rounded' style={{ backgroundColor: '#ef444420' }}>
               <MdPerson size={24} style={{ color: '#ef4444' }} />
             </div>
           </div>
@@ -390,7 +390,7 @@ const Home = () => {
       {/* Charts Section */}
       <div className='flex flex-col gap-6'>
         {/* Growth Line Chart (Full Width) */}
-        <div className='p-6 rounded-xl border shadow-sm'
+        <div className='p-6 rounded border shadow-sm'
              style={{ backgroundColor: colors.background, borderColor: colors.accent + '30' }}>
            <HighchartsReact highcharts={Highcharts} options={lineChartOptions} />
         </div>
@@ -398,13 +398,13 @@ const Home = () => {
         {/* Bottom Split Charts */}
         <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
           {/* Employee Status Chart */}
-          <div className='p-6 rounded-xl border shadow-sm'
+          <div className='p-6 rounded border shadow-sm'
                style={{ backgroundColor: colors.background, borderColor: colors.accent + '30' }}>
              <HighchartsReact highcharts={Highcharts} options={employeeStatusChartOptions} />
           </div>
 
           {/* Overview Chart */}
-          <div className='p-6 rounded-xl border shadow-sm'
+          <div className='p-6 rounded border shadow-sm'
                style={{ backgroundColor: colors.background, borderColor: colors.accent + '30' }}>
              <HighchartsReact highcharts={Highcharts} options={overviewChartOptions} />
           </div>

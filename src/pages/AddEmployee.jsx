@@ -52,7 +52,7 @@ const AddEmployee = () => {
       <div className="flex items-center gap-4 mb-6">
         <button
           onClick={() => navigate('/dashboard/employees')}
-          className="p-2 rounded-lg transition-colors"
+          className="p-2 rounded transition-colors"
           style={{ 
             backgroundColor: colors.accent + '20',
             color: colors.text 
@@ -66,7 +66,7 @@ const AddEmployee = () => {
       </div>
 
       <div 
-        className="w-full rounded-lg border shadow-sm p-6"
+        className="w-full rounded border shadow-sm p-6"
         style={{ 
           backgroundColor: colors.background, 
           borderColor: colors.accent + '30' 
@@ -84,7 +84,7 @@ const AddEmployee = () => {
                 value={formData.name}
                 onChange={handleChange}
                 required
-                className="w-full p-3 rounded-lg border outline-none transition-colors"
+                className="w-full p-3 rounded border outline-none transition-colors"
                 style={{ 
                   backgroundColor: colors.background,
                   borderColor: colors.accent + '40',
@@ -103,7 +103,7 @@ const AddEmployee = () => {
                 value={formData.email}
                 onChange={handleChange}
                 required
-                className="w-full p-3 rounded-lg border outline-none transition-colors"
+                className="w-full p-3 rounded border outline-none transition-colors"
                 style={{ 
                   backgroundColor: colors.background,
                   borderColor: colors.accent + '40',
@@ -122,7 +122,7 @@ const AddEmployee = () => {
                 value={formData.password}
                 onChange={handleChange}
                 required
-                className="w-full p-3 rounded-lg border outline-none transition-colors"
+                className="w-full p-3 rounded border outline-none transition-colors"
                 style={{ 
                   backgroundColor: colors.background,
                   borderColor: colors.accent + '40',
@@ -141,7 +141,7 @@ const AddEmployee = () => {
                 value={formData.designation}
                 onChange={handleChange}
                 required
-                className="w-full p-3 rounded-lg border outline-none transition-colors"
+                className="w-full p-3 rounded border outline-none transition-colors"
                 style={{ 
                   backgroundColor: colors.background,
                   borderColor: colors.accent + '40',
@@ -160,7 +160,7 @@ const AddEmployee = () => {
                 value={formData.phone}
                 onChange={handleChange}
                 required
-                className="w-full p-3 rounded-lg border outline-none transition-colors"
+                className="w-full p-3 rounded border outline-none transition-colors"
                 style={{ 
                   backgroundColor: colors.background,
                   borderColor: colors.accent + '40',
@@ -179,7 +179,7 @@ const AddEmployee = () => {
               name="profilePhoto"
               accept="image/*"
               onChange={handleChange}
-              className="w-full p-3 rounded-lg border outline-none transition-colors"
+              className="w-full p-3 rounded border outline-none transition-colors"
               style={{ 
                 backgroundColor: colors.background,
                 borderColor: colors.accent + '40',
@@ -192,7 +192,7 @@ const AddEmployee = () => {
             <button
               type="submit"
               disabled={loading}
-              className="flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-colors"
+              className="flex items-center gap-2 px-6 py-3 rounded font-medium transition-colors"
               style={{ 
                 backgroundColor: loading ? colors.accent + '40' : colors.primary,
                 color: colors.background 
@@ -205,7 +205,7 @@ const AddEmployee = () => {
             <button
               type="button"
               onClick={() => navigate('/dashboard/employees')}
-              className="px-6 py-3 rounded-lg font-medium transition-colors"
+              className="px-6 py-3 rounded font-medium transition-colors"
               style={{ 
                 backgroundColor: colors.accent + '20',
                 color: colors.text 

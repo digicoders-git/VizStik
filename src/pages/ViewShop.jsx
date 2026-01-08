@@ -52,7 +52,7 @@ const ViewShop = () => {
   }
 
   const InfoRow = ({ label, value, icon: Icon }) => (
-    <div className="flex items-start gap-3 p-3 rounded-lg" 
+    <div className="flex items-start gap-3 p-3 rounded" 
          style={{ backgroundColor: colors.accent + '10' }}>
       {Icon && <Icon className="w-5 h-5 mt-0.5" style={{ color: colors.primary }} />}
       <div className="flex-1">
@@ -72,7 +72,7 @@ const ViewShop = () => {
       <div className="flex-none mb-6 flex items-center gap-4">
         <button
           onClick={() => navigate('/dashboard/shops')}
-          className="p-2 rounded-lg transition-all"
+          className="p-2 rounded transition-all"
           style={{ color: colors.primary }}
           onMouseEnter={(e) => e.currentTarget.style.backgroundColor = colors.primary + '20'}
           onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
@@ -252,7 +252,7 @@ const ViewShop = () => {
                         {shop.location?.latitude && shop.location?.longitude && (
                             <button
                                 onClick={() => setShowMapModal(true)}
-                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium cursor-pointer transition-all hover:opacity-90"
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded text-sm font-medium cursor-pointer transition-all hover:opacity-90"
                                 style={{ 
                                     backgroundColor: colors.primary,
                                     color: colors.background
@@ -281,7 +281,7 @@ const ViewShop = () => {
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {shop.shopImages.map((image, index) => (
-                      <div key={index} className="rounded-lg overflow-hidden border" 
+                      <div key={index} className="rounded overflow-hidden border" 
                            style={{ borderColor: colors.accent + '30' }}>
                         <img 
                           src={image.url} 
@@ -305,7 +305,7 @@ const ViewShop = () => {
        {showMapModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
             <div 
-                className="relative w-full max-w-4xl h-[80vh] rounded-xl overflow-hidden shadow-2xl flex flex-col"
+                className="relative w-full max-w-4xl h-[80vh] rounded overflow-hidden shadow-2xl flex flex-col"
                 style={{ backgroundColor: colors.background }}
             >
                 {/* Modal Header */}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { getShops, deleteShop, toggleShopStatus } from '../apis/shop';
-import { MdSearch, MdDelete, MdVisibility, MdFilterList, MdArrowUpward, MdArrowDownward, MdChevronLeft, MdChevronRight } from 'react-icons/md';
+import { MdSearch, MdDelete, MdVisibility, MdFilterList, MdArrowUpward, MdArrowDownward, MdChevronLeft, MdChevronRight, MdMap } from 'react-icons/md';
 import Toggle from '../components/ui/Toggle';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
@@ -189,7 +189,7 @@ const ManageShop = () => {
               placeholder="Search by shop name or owner name..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-lg border outline-none transition-all"
+              className="w-full pl-10 pr-4 py-2.5 rounded border outline-none transition-all"
               style={{
                 backgroundColor: colors.background,
                 borderColor: colors.accent + '30',
@@ -201,7 +201,7 @@ const ManageShop = () => {
           {/* Filter Toggle Button */}
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="flex cursor-pointer items-center gap-2 px-4 py-2.5 rounded-lg border transition-all"
+            className="flex cursor-pointer items-center gap-2 px-4 py-2.5 rounded border transition-all"
             style={{
               backgroundColor: showFilters ? colors.primary + '20' : colors.background,
               borderColor: colors.accent + '30',
@@ -215,7 +215,7 @@ const ManageShop = () => {
 
         {/* Filter Options */}
         {showFilters && (
-          <div className="flex flex-col md:flex-row gap-4 p-4 rounded-lg border" 
+          <div className="flex flex-col md:flex-row gap-4 p-4 rounded border" 
                style={{ 
                  backgroundColor: colors.sidebar || colors.background,
                  borderColor: colors.accent + '30'
@@ -232,7 +232,7 @@ const ManageShop = () => {
                   setCityFilter(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full px-4 py-2 rounded-lg border outline-none"
+                className="w-full px-4 py-2 rounded border outline-none"
                 style={{
                   backgroundColor: colors.background,
                   borderColor: colors.accent + '30',
@@ -252,7 +252,7 @@ const ManageShop = () => {
                   setShopTypeFilter(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full px-4 py-2 rounded-lg border outline-none"
+                className="w-full px-4 py-2 rounded border outline-none"
                 style={{
                   backgroundColor: colors.background,
                   borderColor: colors.accent + '30',
@@ -263,7 +263,7 @@ const ManageShop = () => {
             <div className="flex items-end">
               <button
                 onClick={clearFilters}
-                className="px-4 cursor-pointer py-2 rounded-lg transition-all"
+                className="px-4 cursor-pointer py-2 rounded transition-all"
                 style={{
                   backgroundColor: colors.primary + '20',
                   color: colors.primary
@@ -276,23 +276,37 @@ const ManageShop = () => {
         )}
       </div>
 
-      {/* Stats */}
-      <div className="mb-4 flex items-center gap-2">
-        <span className="text-sm font-medium" style={{ color: colors.textSecondary }}>
-          Total Shops:
-        </span>
-        <span className="text-sm font-bold px-3 py-1 rounded-full flex items-center justify-center min-w-[30px]" 
-              style={{ 
-                backgroundColor: colors.primary + '20',
-                color: colors.primary,
-                minHeight: '28px'
-              }}>
-          {loading ? <Loader size={16} /> : totalShops}
-        </span>
+      {/* Stats and Map Button */}
+      <div className="mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium" style={{ color: colors.textSecondary }}>
+            Total Shops:
+            </span>
+            <span className="text-sm font-bold px-3 py-1 rounded-full flex items-center justify-center min-w-[30px]" 
+                style={{ 
+                    backgroundColor: colors.primary + '20',
+                    color: colors.primary,
+                    minHeight: '28px'
+                }}>
+            {loading ? <Loader size={16} /> : totalShops}
+            </span>
+          </div>
+
+          <button
+                onClick={() => navigate('/dashboard/shops/map')}
+                className="flex items-center cursor-pointer gap-2 px-4 py-2 rounded transition-all hover:opacity-90 shadow-sm"
+                style={{ 
+                    backgroundColor: colors.primary, 
+                    color: colors.background 
+                }}
+            >
+                <MdMap className="w-5 h-5" />
+                <span>View Shop On Map</span>
+            </button>
       </div>
 
       {/* Table Container */}
-      <div className="flex-1 overflow-auto rounded-lg border" 
+      <div className="flex-1 overflow-auto rounded border" 
            style={{ borderColor: colors.accent + '30' }}>
         <table className="w-full">
           <thead className="sticky top-0 z-10" 
@@ -406,7 +420,7 @@ const ManageShop = () => {
                     <div className="flex items-center justify-center gap-2">
                       <button
                         onClick={() => handleView(shop._id)}
-                        className="p-2 cursor-pointer rounded-lg transition-all"
+                        className="p-2 cursor-pointer rounded transition-all"
                         style={{ color: colors.primary }}
                         onMouseEnter={(e) => e.currentTarget.style.backgroundColor = colors.primary + '20'}
                         onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
@@ -416,7 +430,7 @@ const ManageShop = () => {
                       </button>
                       <button
                         onClick={() => handleDelete(shop._id)}
-                        className="p-2 cursor-pointer rounded-lg transition-all flex items-center justify-center"
+                        className="p-2 cursor-pointer rounded transition-all flex items-center justify-center"
                         disabled={deletingId === shop._id}
                         style={{ 
                           color: '#DC2626',
@@ -448,7 +462,7 @@ const ManageShop = () => {
                 <button
                     onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                     disabled={currentPage === 1}
-                    className="p-2 rounded-lg border disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="p-2 rounded border disabled:opacity-50 disabled:cursor-not-allowed"
                     style={{ 
                         borderColor: colors.accent + '30',
                         color: colors.text
@@ -467,7 +481,7 @@ const ManageShop = () => {
                                 {index > 0 && array[index - 1] !== page - 1 && <span className="px-2">...</span>}
                                 <button
                                     onClick={() => setCurrentPage(page)}
-                                    className={`w-8 h-8 cursor-pointer rounded-lg text-sm font-medium transition-colors ${
+                                    className={`w-8 h-8 cursor-pointer rounded text-sm font-medium transition-colors ${
                                         currentPage === page ? 'bg-primary text-white' : 'hover:bg-gray-100'
                                     }`}
                                     style={{
@@ -485,7 +499,7 @@ const ManageShop = () => {
                 <button
                     onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                     disabled={currentPage === totalPages}
-                    className="p-2 cursor-pointer rounded-lg border disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="p-2 cursor-pointer rounded border disabled:opacity-50 disabled:cursor-not-allowed"
                      style={{ 
                         borderColor: colors.accent + '30',
                         color: colors.text
