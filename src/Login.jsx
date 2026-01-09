@@ -35,8 +35,12 @@ const Login = () => {
       toast.success('Login successful!')
       navigate('/dashboard')
     } catch (error) {
-      console.error('Login error:', error)
-      toast.error(error.response?.data?.message || 'Login failed')
+      // console.error('Login error:', error)
+      if (error.response && error.response.status !== 500) {
+        toast.error(error.response.data.message || error.response.data.error || 'Login failed')
+      } else {
+        toast.error('Login failed')
+      }
     } finally {
       setLoading(false)
     }
@@ -90,7 +94,7 @@ const Login = () => {
             {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
-        <div className="mt-6 pt-6 border-t border-gray-100 text-center text-xs">
+        <div className="mt-6 pt-6 border-t border-gray-100 text-center text-xs hover:text-blue-500  transition-all duration-200">
             <a href="https://digicoders.in" target='_blank' >Design and Developed By #TeamDigicoders</a>
         </div>
       </div>

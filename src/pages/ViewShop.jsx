@@ -4,6 +4,7 @@ import { useTheme } from '../context/ThemeContext';
 import { getShopById } from '../apis/shop';
 import { MdArrowBack, MdLocationOn, MdPhone, MdEmail, MdAccessTime, MdStore, MdMap, MdClose } from 'react-icons/md';
 import Loader from '../components/ui/Loader';
+import { toast } from 'react-toastify';
 
 const ViewShop = () => {
   const { id } = useParams();
@@ -24,8 +25,12 @@ const ViewShop = () => {
         const data = await getShopById(id);
         setShop(data.shop || data);
       } catch (error) {
-        console.error('Error fetching shop:', error);
-        alert('Failed to load shop details');
+        // console.error('Error fetching shop:', error);
+        if (error.response && error.response.status !== 500) {
+          toast.error(error.response.data.message || error.response.data.error || 'Failed to load shop details')
+        } else {
+          toast.error('Failed to load shop details')
+        }
         navigate('/dashboard/shops');
       } finally {
         setLoading(false);

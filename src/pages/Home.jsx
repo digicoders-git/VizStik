@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
-import { MdPeople, MdStorefront, MdCheckCircle, MdPerson } from 'react-icons/md';
+import { MdPeople, MdStorefront, MdCheckCircle, MdPerson, MdToday } from 'react-icons/md';
 import { getEmployees } from '../apis/employee';
 import { getShops } from '../apis/shop';
 import Loader from '../components/ui/Loader';
 
 const Home = () => {
   const { colors } = useTheme();
+  const navigate = useNavigate();
   const [filter, setFilter] = useState('Day'); // Day, Week, Month, Year
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState({ employees: [], shops: [] });
@@ -18,7 +20,8 @@ const Home = () => {
     totalEmployees: 0,
     totalShops: 0,
     activeEmployees: 0,
-    inactiveEmployees: 0
+    inactiveEmployees: 0,
+    todayAddedShops: 0
   });
 
   // Graph Data State (Filtered)
@@ -153,9 +156,21 @@ const Home = () => {
     const activeEmployeesCount = filteredEmp.filter(e => e.isActive).length;
     const inactiveEmployeesCount = filteredEmp.length - activeEmployeesCount;
 
+    // Calculate Today's Added Shops
+    const todayStart = new Date();
+    todayStart.setHours(0,0,0,0);
+    const todayEnd = new Date();
+    todayEnd.setHours(23,59,59,999);
+
+    const todayAddedShopsCount = shops.filter(s => {
+        const c = new Date(s.createdAt);
+        return c >= todayStart && c <= todayEnd;
+    }).length;
+
     setStats({
         totalEmployees: filteredEmp.length,
         totalShops: filteredShops.length,
+        todayAddedShops: todayAddedShopsCount,
         activeEmployees: activeEmployeesCount,
         inactiveEmployees: inactiveEmployeesCount
     });
@@ -300,10 +315,10 @@ const Home = () => {
       <div className='flex flex-col md:flex-row md:items-end justify-between gap-4'>
         <div>
           <h1 className='text-3xl md:text-4xl font-bold mb-2' style={{ color: colors.text }}>
-            {getGreeting()}, Admin
+            {getGreeting()}!
           </h1>
           <p className='text-base' style={{ color: colors.textSecondary }}>
-            Overview of your platform's performance.
+            Overview of your VizStik performance.
           </p>
         </div>
         
@@ -329,9 +344,10 @@ const Home = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>
+      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6'>
         {/* Total Employees */}
-        <div className='p-6 rounded border shadow-sm transition-all hover:scale-105'
+        <div className='p-6 rounded border shadow-sm transition-all hover:scale-105 cursor-pointer'
+             onClick={() => navigate('/dashboard/employees')}
              style={{ backgroundColor: colors.background, borderColor: colors.accent + '30' }}>
           <div className='flex items-center justify-between mb-4'>
             <div className='p-3 rounded' style={{ backgroundColor: colors.primary + '20' }}>
@@ -345,7 +361,8 @@ const Home = () => {
         </div>
 
         {/* Total Shops */}
-        <div className='p-6 rounded border shadow-sm transition-all hover:scale-105'
+        <div className='p-6 rounded border shadow-sm transition-all hover:scale-105 cursor-pointer'
+             onClick={() => navigate('/dashboard/shops')}
              style={{ backgroundColor: colors.background, borderColor: colors.accent + '30' }}>
           <div className='flex items-center justify-between mb-4'>
             <div className='p-3 rounded' style={{ backgroundColor: '#f59e0b20' }}>
@@ -358,8 +375,27 @@ const Home = () => {
           <p className='text-sm' style={{ color: colors.textSecondary }}>Total Shops</p>
         </div>
 
+        {/* Today Added Shops */}
+        <div className='p-6 rounded border shadow-sm transition-all hover:scale-105 cursor-pointer'
+             onClick={() => {
+                const today = new Date().toISOString().split('T')[0];
+                navigate('/dashboard/shops', { state: { initialDate: today } });
+             }}
+             style={{ backgroundColor: colors.background, borderColor: colors.accent + '30' }}>
+          <div className='flex items-center justify-between mb-4'>
+            <div className='p-3 rounded' style={{ backgroundColor: '#8b5cf620' }}>
+              <MdToday size={24} style={{ color: '#8b5cf6' }} />
+            </div>
+          </div>
+          <h3 className='text-3xl font-bold mb-1' style={{ color: colors.text }}>
+            {stats.todayAddedShops}
+          </h3>
+          <p className='text-sm' style={{ color: colors.textSecondary }}>Today Added Shops</p>
+        </div>
+
         {/* Active Employees */}
-        <div className='p-6 rounded border shadow-sm transition-all hover:scale-105'
+        <div className='p-6 rounded border shadow-sm transition-all hover:scale-105 cursor-pointer'
+             onClick={() => navigate('/dashboard/employees', { state: { initialStatus: 'true' } })}
              style={{ backgroundColor: colors.background, borderColor: colors.accent + '30' }}>
           <div className='flex items-center justify-between mb-4'>
             <div className='p-3 rounded' style={{ backgroundColor: '#22c55e20' }}>
@@ -373,7 +409,8 @@ const Home = () => {
         </div>
 
         {/* Inactive Employees */}
-        <div className='p-6 rounded border shadow-sm transition-all hover:scale-105'
+        <div className='p-6 rounded border shadow-sm transition-all hover:scale-105 cursor-pointer'
+             onClick={() => navigate('/dashboard/employees', { state: { initialStatus: 'false' } })}
              style={{ backgroundColor: colors.background, borderColor: colors.accent + '30' }}>
           <div className='flex items-center justify-between mb-4'>
             <div className='p-3 rounded' style={{ backgroundColor: '#ef444420' }}>

@@ -3,7 +3,7 @@ import { useTheme } from '../context/ThemeContext';
 import { getShops, deleteShop, toggleShopStatus } from '../apis/shop';
 import { MdSearch, MdDelete, MdVisibility, MdFilterList, MdArrowUpward, MdArrowDownward, MdChevronLeft, MdChevronRight, MdMap } from 'react-icons/md';
 import Toggle from '../components/ui/Toggle';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Swal from 'sweetalert2';
 
 import Loader from '../components/ui/Loader';
@@ -11,6 +11,7 @@ import Loader from '../components/ui/Loader';
 const ManageShop = () => {
   const { colors } = useTheme();
   const navigate = useNavigate();
+  const location = useLocation();
   
   const [allShops, setAllShops] = useState([]);
   const [shops, setShops] = useState([]); // Displayed shops
@@ -19,7 +20,8 @@ const ManageShop = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [cityFilter, setCityFilter] = useState('');
   const [shopTypeFilter, setShopTypeFilter] = useState('');
-  const [showFilters, setShowFilters] = useState(false);
+  const [dateFilter, setDateFilter] = useState(location.state?.initialDate || '');
+  const [showFilters, setShowFilters] = useState(!!location.state?.initialDate);
   
   // Pagination & Sorting states
   const [currentPage, setCurrentPage] = useState(1);
@@ -28,11 +30,14 @@ const ManageShop = () => {
   const [sortOrder, setSortOrder] = useState('desc'); // 'asc' or 'desc'
   const [totalShops, setTotalShops] = useState(0);
 
-  // Fetch all shops
+  // Fetch shops with server-side date filter
   const fetchShops = async () => {
     try {
       setLoading(true);
-      const data = await getShops({});
+      const params = {};
+      if (dateFilter) params.date = dateFilter;
+      
+      const data = await getShops(params);
       
       const fetchedShops = data.shops || [];
       setAllShops(fetchedShops);
@@ -44,10 +49,18 @@ const ManageShop = () => {
     }
   };
 
-  // Initial Fetch
+  // Initial Fetch & Fetch on Date Change
   useEffect(() => {
     fetchShops();
-  }, []);
+  }, [dateFilter]);
+
+  // Handle Initial Date from Navigation (When location state changes)
+  useEffect(() => {
+    if (location.state?.initialDate) {
+      setDateFilter(location.state.initialDate)
+      setShowFilters(true)
+    }
+  }, [location.state])
 
   // Filter, Sort, Paginate Logic
   useEffect(() => {
@@ -109,12 +122,12 @@ const ManageShop = () => {
             'success'
           )
         } catch (error) {
-          console.error('Error deleting shop:', error);
-          Swal.fire(
-            'Error!',
-            'Failed to delete shop.',
-            'error'
-          )
+          // console.error('Error deleting shop:', error);
+          if (error.response && error.response.status !== 500) {
+            Swal.fire('Error!', error.response.data.message || error.response.data.error || 'Failed to delete shop.', 'error');
+          } else {
+            Swal.fire('Error!', 'Failed to delete shop.', 'error');
+          }
         } finally {
             setDeletingId(null);
         }
@@ -128,12 +141,12 @@ const ManageShop = () => {
       await toggleShopStatus(id);
       fetchShops();
     } catch (error) {
-      console.error('Error toggling shop status:', error);
-      Swal.fire(
-        'Error!',
-        'Failed to update shop status.',
-        'error'
-      )
+      // console.error('Error toggling shop status:', error);
+      if (error.response && error.response.status !== 500) {
+        Swal.fire('Error!', error.response.data.message || error.response.data.error || 'Failed to update shop status.', 'error');
+      } else {
+        Swal.fire('Error!', 'Failed to update shop status.', 'error');
+      }
     }
   };
 
@@ -159,12 +172,13 @@ const ManageShop = () => {
   const clearFilters = () => {
     setCityFilter('');
     setShopTypeFilter('');
+    setDateFilter('');
     setSearchTerm('');
     setCurrentPage(1);
   };
 
   return (
-    <div className="w-full h-full flex flex-col">
+    <div className="w-full h-fit flex flex-col">
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl md:text-3xl font-bold mb-2" style={{ color: colors.text }}>
@@ -260,6 +274,25 @@ const ManageShop = () => {
                 }}
               />
             </div>
+            <div className="flex-1">
+              <label className="block text-sm font-medium mb-2" style={{ color: colors.text }}>
+                Date Added
+              </label>
+              <input
+                type="date"
+                value={dateFilter}
+                onChange={(e) => {
+                  setDateFilter(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="w-full px-4 py-2 rounded border outline-none"
+                style={{
+                  backgroundColor: colors.background,
+                  borderColor: colors.accent + '30',
+                  color: colors.text
+                }}
+              />
+            </div>
             <div className="flex items-end">
               <button
                 onClick={clearFilters}
@@ -306,8 +339,8 @@ const ManageShop = () => {
       </div>
 
       {/* Table Container */}
-      <div className="flex-1 overflow-auto rounded border" 
-           style={{ borderColor: colors.accent + '30' }}>
+      <div className="w-full overflow-auto rounded border" 
+           style={{ borderColor: colors.accent + '30', minHeight: '500px' }}>
         <table className="w-full">
           <thead className="sticky top-0 z-10" 
                  style={{ backgroundColor: colors.sidebar || colors.background }}>
@@ -454,7 +487,7 @@ const ManageShop = () => {
 
       {/* Pagination Controls */}
       {!loading && totalPages > 1 && (
-        <div className="mt-4 flex items-center justify-between" style={{ color: colors.text }}>
+        <div className="mt-4 flex items-center justify-between mb-10" style={{ color: colors.text }}>
             <div className="text-sm">
                 Showing {(currentPage - 1) * limit + 1} to {Math.min(currentPage * limit, totalShops)} of {totalShops} entries
             </div>

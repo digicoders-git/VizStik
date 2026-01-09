@@ -3,7 +3,7 @@ import { useTheme } from '../context/ThemeContext'
 import { getEmployees, deleteEmployee, updateEmployeeStatus } from '../apis/employee'
 import { toast } from 'react-toastify'
 import { MdAdd, MdEdit, MdDelete, MdVisibility, MdSearch, MdChevronLeft, MdChevronRight, MdFilterList, MdArrowUpward, MdArrowDownward } from 'react-icons/md'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import Toggle from '../components/ui/Toggle'
 import Loader from '../components/ui/Loader'
 import Swal from 'sweetalert2'
@@ -11,6 +11,7 @@ import Swal from 'sweetalert2'
 const Employees = () => {
   const { colors } = useTheme()
   const navigate = useNavigate()
+  const location = useLocation()
   
   const [allEmployees, setAllEmployees] = useState([]) // Stores all raw data
   const [filteredEmployees, setFilteredEmployees] = useState([]) // Stores filtered & sorted data
@@ -21,12 +22,12 @@ const Employees = () => {
   
   // Search, Filter, Pagination states
   const [searchTerm, setSearchTerm] = useState('')
-  const [activeFilter, setActiveFilter] = useState('') // 'true', 'false', or '' (all)
+  const [activeFilter, setActiveFilter] = useState(location.state?.initialStatus || '') // 'true', 'false', or '' (all)
   const [currentPage, setCurrentPage] = useState(1)
   const [limit] = useState(10)
   const [totalPages, setTotalPages] = useState(1)
   const [totalEmployees, setTotalEmployees] = useState(0)
-  const [showFilters, setShowFilters] = useState(false)
+  const [showFilters, setShowFilters] = useState(!!location.state?.initialStatus)
   
   // Sorting state
   const [sortBy, setSortBy] = useState('')
@@ -96,6 +97,14 @@ const Employees = () => {
   useEffect(() => {
      setCurrentPage(1)
   }, [searchTerm, activeFilter, sortBy, sortOrder])
+
+  // 2c. Handle Initial Filter State from Navigation
+  useEffect(() => {
+    if (location.state?.initialStatus) {
+      setActiveFilter(location.state.initialStatus)
+      setShowFilters(true)
+    }
+  }, [location.state])
 
 
   // 3. Pagination Effect (Slice data for view)
@@ -327,10 +336,11 @@ const Employees = () => {
       </div>
 
       <div 
-        className="rounded border shadow-sm overflow-hidden"
+        className="rounded border shadow-sm overflow-hidden lg:min-h-[500px]"
         style={{ 
           backgroundColor: colors.background, 
-          borderColor: colors.accent + '30' 
+          borderColor: colors.accent + '30',
+          minHeight: '500px'
         }}
       >
         <div className="overflow-x-auto">

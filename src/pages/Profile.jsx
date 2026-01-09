@@ -44,8 +44,12 @@ const Profile = () => {
         setPreviewImage(admin.profilePhoto);
       }
     } catch (error) {
-      console.error('Error fetching profile:', error);
-      Swal.fire('Error', 'Failed to load profile data', 'error');
+      // console.error('Error fetching profile:', error);
+      if (error.response && error.response.status !== 500) {
+        Swal.fire('Error', error.response.data.message || error.response.data.error || 'Failed to load profile data', 'error');
+      } else {
+        Swal.fire('Error', 'Failed to load profile data', 'error');
+      }
     } finally {
       setLoading(false);
     }
@@ -83,8 +87,12 @@ const Profile = () => {
       setIsEditing(false);
       fetchProfile(); // Refresh data
     } catch (error) {
-      console.error('Error updating profile:', error);
-      Swal.fire('Error', error.response?.data?.message || 'Failed to update profile', 'error');
+      // console.error('Error updating profile:', error);
+      if (error.response && error.response.status !== 500) {
+        Swal.fire('Error', error.response.data.message || error.response.data.error || 'Failed to update profile', 'error');
+      } else {
+        Swal.fire('Error', 'Failed to update profile', 'error');
+      }
     } finally {
         setLoading(false);
     }

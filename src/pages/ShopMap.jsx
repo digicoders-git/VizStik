@@ -6,6 +6,7 @@ import { useTheme } from '../context/ThemeContext';
 import Loader from '../components/ui/Loader';
 import { MdArrowBack, MdStore, MdPerson, MdPhone, MdLocationOn } from 'react-icons/md';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import L from 'leaflet';
 
 // Fix for default marker icon in React-Leaflet
@@ -41,7 +42,12 @@ const ShopMap = () => {
         );
         setShops(validShops);
       } catch (error) {
-        console.error('Error fetching shops for map:', error);
+        // console.error('Error fetching shops for map:', error);
+        if (error.response && error.response.status !== 500) {
+          toast.error(error.response.data.message || error.response.data.error || 'Failed to load shops for map')
+        } else {
+          toast.error('Failed to load shops for map')
+        }
       } finally {
         setLoading(false);
       }
