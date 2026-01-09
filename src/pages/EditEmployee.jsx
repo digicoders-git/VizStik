@@ -16,6 +16,9 @@ const EditEmployee = () => {
     password: '',
     phone: '',
     designation: '',
+    state: '',
+    city: '',
+    area: '',
     profilePhoto: null
   })
 
@@ -35,6 +38,9 @@ const EditEmployee = () => {
           password: '', // Don't populate password
           phone: employee.phone || '',
           designation: employee.designation || '',
+          state: employee.state || '',
+          city: employee.city || '',
+          area: employee.area || '',
           profilePhoto: null // Don't populate file input
         })
       }
@@ -191,6 +197,63 @@ const EditEmployee = () => {
                 type="tel"
                 name="phone"
                 value={formData.phone}
+                onChange={handleChange}
+                required
+                className="w-full p-3 rounded border outline-none transition-colors"
+                style={{ 
+                  backgroundColor: colors.background,
+                  borderColor: colors.accent + '40',
+                  color: colors.text 
+                }}
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium mb-2" style={{ color: colors.text }}>
+                State
+              </label>
+              <input
+                type="text"
+                name="state"
+                value={formData.state}
+                onChange={handleChange}
+                required
+                className="w-full p-3 rounded border outline-none transition-colors"
+                style={{ 
+                  backgroundColor: colors.background,
+                  borderColor: colors.accent + '40',
+                  color: colors.text 
+                }}
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium mb-2" style={{ color: colors.text }}>
+                City
+              </label>
+              <input
+                type="text"
+                name="city"
+                value={formData.city}
+                onChange={handleChange}
+                required
+                className="w-full p-3 rounded border outline-none transition-colors"
+                style={{ 
+                  backgroundColor: colors.background,
+                  borderColor: colors.accent + '40',
+                  color: colors.text 
+                }}
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium mb-2" style={{ color: colors.text }}>
+                Area
+              </label>
+              <input
+                type="text"
+                name="area"
+                value={formData.area}
                 onChange={handleChange}
                 required
                 className="w-full p-3 rounded border outline-none transition-colors"

@@ -347,23 +347,23 @@ const Employees = () => {
           <table className="w-full">
             <thead style={{ backgroundColor: colors.accent + '10' }}>
               <tr>
-                <th className="px-6 py-3 text-left text-sm font-medium" style={{ color: colors.text }}>
+                <th className="px-6 py-3 text-left text-sm font-medium whitespace-nowrap" style={{ color: colors.text }}>
                    Sr.
                 </th>
-                <th className="px-6 py-3 text-left text-sm font-medium" style={{ color: colors.text }}>
+                <th className="px-6 py-3 text-left text-sm font-medium whitespace-nowrap" style={{ color: colors.text }}>
                   Name
                 </th>
-                <th className="px-6 py-3 text-left text-sm font-medium" style={{ color: colors.text }}>
+                <th className="px-6 py-3 text-left text-sm font-medium whitespace-nowrap" style={{ color: colors.text }}>
                   Email
                 </th>
-                <th className="px-6 py-3 text-left text-sm font-medium" style={{ color: colors.text }}>
+                <th className="px-6 py-3 text-left text-sm font-medium whitespace-nowrap" style={{ color: colors.text }}>
                   Designation
                 </th>
-                <th className="px-6 py-3 text-left text-sm font-medium" style={{ color: colors.text }}>
+                <th className="px-6 py-3 text-left text-sm font-medium whitespace-nowrap" style={{ color: colors.text }}>
                   Phone
                 </th>
                 <th 
-                  className="px-6 py-3 text-left text-sm font-medium cursor-pointer select-none group" 
+                  className="px-6 py-3 text-left text-sm font-medium cursor-pointer select-none group whitespace-nowrap" 
                   style={{ color: colors.text }}
                   onClick={() => handleSort('totalShops')}
                 >
@@ -378,10 +378,10 @@ const Employees = () => {
                     </span>
                   </div>
                 </th>
-                <th className="px-6 py-3 text-left text-sm font-medium" style={{ color: colors.text }}>
+                <th className="px-6 py-3 text-left text-sm font-medium whitespace-nowrap" style={{ color: colors.text }}>
                   Status
                 </th>
-                <th className="px-6 py-3 text-left text-sm font-medium" style={{ color: colors.text }}>
+                <th className="px-6 py-3 text-left text-sm font-medium whitespace-nowrap" style={{ color: colors.text }}>
                   Actions
                 </th>
               </tr>
@@ -406,10 +406,10 @@ const Employees = () => {
                   className="border-t"
                   style={{ borderColor: colors.accent + '20' }}
                 >
-                  <td className="px-6 py-4 text-sm" style={{ color: colors.text }}>
+                  <td className="px-6 py-4 text-sm whitespace-nowrap" style={{ color: colors.text }}>
                     {(currentPage - 1) * limit + index + 1}
                   </td>
-                  <td className="px-6 py-4 text-sm" style={{ color: colors.text }}>
+                  <td className="px-6 py-4 text-sm whitespace-nowrap" style={{ color: colors.text }}>
                     <div className="flex items-center gap-3">
                       {employee.profilePhoto?.url && (
                         <img 
@@ -421,31 +421,39 @@ const Employees = () => {
                       {employee.name}
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-sm" style={{ color: colors.text }}>
+                  <td className="px-6 py-4 text-sm whitespace-nowrap" style={{ color: colors.text }}>
                     {employee.email}
                   </td>
-                  <td className="px-6 py-4 text-sm" style={{ color: colors.text }}>
+                  <td className="px-6 py-4 text-sm whitespace-nowrap" style={{ color: colors.text }}>
                     {employee.designation}
                   </td>
-                  <td className="px-6 py-4 text-sm" style={{ color: colors.text }}>
+                  <td className="px-6 py-4 text-sm whitespace-nowrap" style={{ color: colors.text }}>
                     {employee.phone}
                   </td>
-                  <td className="px-6 py-4 text-sm font-medium">
-                    <button
-                      onClick={() => navigate(`/dashboard/employees/${employee._id}/shops`)}
-                      className="hover:underline cursor-pointer focus:outline-none"
-                      style={{ color: colors.primary }}
-                    >
-                      {employee.totalShops || 0} 
-                    </button>
+                  <td className="px-6 py-4 text-sm font-medium whitespace-nowrap">
+                    <div className="flex items-center gap-3">
+                      <span style={{ color: colors.text }}>{employee.totalShops || 0}</span>
+                      <button
+                        onClick={() => navigate(`/dashboard/employees/${employee._id}/shops`)}
+                        className="flex items-center gap-1 px-2 py-1 rounded text-xs transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                        style={{ 
+                          backgroundColor: colors.primary + '15',
+                          color: colors.primary,
+                          border: `1px solid ${colors.primary}30`
+                        }}
+                      >
+                        <MdVisibility size={14} />
+                        View Shop
+                      </button>
+                    </div>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4 whitespace-nowrap">
                     <Toggle 
                       active={employee.isActive}
                       onClick={() => handleStatusToggle(employee._id)}
                     />
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => navigate(`/dashboard/employees/view/${employee._id}`)}

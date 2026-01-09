@@ -3,8 +3,10 @@ import { useTheme } from '../context/ThemeContext'
 import { getEmployees } from '../apis/employee'
 import { toast } from 'react-toastify'
 import { useNavigate, useParams } from 'react-router-dom'
-import { MdArrowBack, MdEdit, MdPerson, MdEmail, MdWork, MdBusiness, MdPhone, MdAttachMoney } from 'react-icons/md'
+import { MdArrowBack, MdEdit, MdPerson, MdEmail, MdWork, MdBusiness, MdPhone, MdAttachMoney, MdOutlineRealEstateAgent } from 'react-icons/md'
 import Loader from '../components/ui/Loader'
+import { FaCity } from "react-icons/fa";
+import { PiMapPinArea } from "react-icons/pi";
 
 const ViewEmployee = () => {
   const { colors } = useTheme()
@@ -152,6 +154,48 @@ const ViewEmployee = () => {
                 </div>
               )}
 
+              {employee.state && (
+                <div className="flex items-center gap-3">
+                  <MdOutlineRealEstateAgent size={20} style={{ color: colors.primary }} />
+                  <div>
+                    <p className="text-sm font-medium" style={{ color: colors.textSecondary }}>
+                      State
+                    </p>
+                    <p style={{ color: colors.text }}>
+                      {employee.state}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {employee.city && (
+                <div className="flex items-center gap-3">
+                  <FaCity size={20} style={{ color: colors.primary }} />
+                  <div>
+                    <p className="text-sm font-medium" style={{ color: colors.textSecondary }}>
+                      City
+                    </p>
+                    <p style={{ color: colors.text }}>
+                      {employee.city}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {employee.area && (
+                <div className="flex items-center gap-3">
+                  <PiMapPinArea size={20} style={{ color: colors.primary }} />
+                  <div>
+                    <p className="text-sm font-medium" style={{ color: colors.textSecondary }}>
+                      Area
+                    </p>
+                    <p style={{ color: colors.text }}>
+                      {employee.area}
+                    </p>
+                  </div>
+                </div>
+              )}
+
               <div className="flex items-center gap-3">
                 <div>
                   <p className="text-sm font-medium" style={{ color: colors.textSecondary }}>
@@ -163,20 +207,7 @@ const ViewEmployee = () => {
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
-                <div>
-                  <p className="text-sm font-medium" style={{ color: colors.textSecondary }}>
-                    Status
-                  </p>
-                  <span 
-                    className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      employee.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                    }`}
-                  >
-                    {employee.isActive ? 'Active' : 'Inactive'}
-                  </span>
-                </div>
-              </div>
+              
             </div>
 
             <div className="space-y-4">
@@ -242,6 +273,21 @@ const ViewEmployee = () => {
                   <p style={{ color: colors.text, fontSize: '12px', fontFamily: 'monospace' }}>
                     {employee._id}
                   </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div>
+                  <p className="text-sm font-medium" style={{ color: colors.textSecondary }}>
+                    Status
+                  </p>
+                  <span 
+                    className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      employee.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                    }`}
+                  >
+                    {employee.isActive ? 'Active' : 'Inactive'}
+                  </span>
                 </div>
               </div>
             </div>
