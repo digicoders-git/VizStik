@@ -277,27 +277,28 @@ const Dashboard = () => {
                     onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}>
               <MdMenu className='w-6 h-6' style={{ pointerEvents: 'none' }} />
             </button>
-            <div className='flex flex-col'>
+            {/* <div className='flex flex-col'>
               <h1 className='text-sm md:text-xl font-semibold' style={{ color: colors.text }}>Welcome Back</h1>
               <span className='text-xs md:text-sm' style={{ color: colors.textSecondary }}>Admin</span>
+            </div> */}
+            <div className='text-sm md:text-base font-bold' style={{ color: colors.primary }}>
+              <Clock />
             </div>
           </div>
           
           
           <div className='flex items-center space-x-2 md:space-x-4 flex-1 justify-end'>
-            <div className='text-sm md:text-base font-bold' style={{ color: colors.primary }}>
-              <Clock />
-            </div>
+            
              <button onClick={() => setSettingsOpen(true)}
                     className='p-2  cursor-pointer rounded-lg transition-colors'
                     onMouseEnter={(e) => e.target.style.backgroundColor = colors.primary + '20'}
                     onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'} style={{ color: colors.primary }}>
               <Settings className='w-5 h-5 md:w-6 md:h-6' />
             </button> 
-            <div className='w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center'
+            {/* <div className='w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center'
                  style={{ backgroundColor: colors.accent }}>
               <span className='text-white font-semibold text-sm'><img src={logoo} alt="logo" className='rounded-full' /></span>
-            </div>
+            </div> */}
           </div>
         </header>
 
