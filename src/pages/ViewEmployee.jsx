@@ -29,7 +29,11 @@ const ViewEmployee = () => {
         navigate('/dashboard/employees')
       }
     } catch (error) {
-      toast.error('Failed to fetch employee data')
+      if (error.response && error.response.status !== 500) {
+        toast.error(error.response.data.message || error.response.data.error || 'Failed to fetch employee data')
+      } else {
+        toast.error('Failed to fetch employee data')
+      }
     } finally {
       setLoading(false)
     }

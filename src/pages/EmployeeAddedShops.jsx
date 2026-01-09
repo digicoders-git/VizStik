@@ -31,8 +31,12 @@ const EmployeeAddedShops = () => {
         navigate('/dashboard/employees')
       }
     } catch (error) {
-      console.error('Fetch employee error:', error)
-      toast.error('Failed to fetch employee details')
+      // console.error('Fetch employee error:', error)
+      if (error.response && error.response.status !== 500) {
+        toast.error(error.response.data.message || error.response.data.error || 'Failed to fetch employee details')
+      } else {
+        toast.error('Failed to fetch employee details')
+      }
     } finally {
       setLoading(false)
     }

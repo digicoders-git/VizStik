@@ -9,7 +9,7 @@ import Loader from '../components/ui/Loader';
 
 const Home = () => {
   const { colors } = useTheme();
-  const [filter, setFilter] = useState('Year'); // Day, Week, Month, Year
+  const [filter, setFilter] = useState('Day'); // Day, Week, Month, Year
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState({ employees: [], shops: [] });
   

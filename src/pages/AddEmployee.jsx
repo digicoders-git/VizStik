@@ -4,6 +4,7 @@ import { createEmployee } from '../apis/employee'
 import { toast } from 'react-toastify'
 import { useNavigate } from 'react-router-dom'
 import { MdArrowBack, MdSave } from 'react-icons/md'
+import Loader from '../components/ui/Loader'
 
 const AddEmployee = () => {
   const { colors } = useTheme()
@@ -23,11 +24,17 @@ const AddEmployee = () => {
     setLoading(true)
     
     try {
-      await createEmployee(formData)
+      const data = await createEmployee(formData)
       toast.success('Employee added successfully')
+      console.log(data)
       navigate('/dashboard/employees')
     } catch (error) {
-      toast.error('Failed to add employee')
+      // console.error(error)
+      if (error.response && error.response.status !== 500) {
+        toast.error(error.response.data.message || error.response.data.error || 'Failed to add employee')
+      } else {
+        toast.error('Failed to add employee')
+      }
     } finally {
       setLoading(false)
     }
@@ -192,20 +199,20 @@ const AddEmployee = () => {
             <button
               type="submit"
               disabled={loading}
-              className="flex items-center gap-2 px-6 py-3 rounded font-medium transition-colors"
+              className="flex items-center cursor-pointer gap-2 px-6 py-3 rounded font-medium transition-colors"
               style={{ 
                 backgroundColor: loading ? colors.accent + '40' : colors.primary,
                 color: colors.background 
               }}
             >
               <MdSave size={20} />
-              {loading ? 'Saving...' : 'Save Employee'}
+              {loading ? <>'Saving...' <Loader size={20} /></> : 'Save Employee'}
             </button>
             
             <button
               type="button"
-              onClick={() => navigate('/dashboard/employees')}
-              className="px-6 py-3 rounded font-medium transition-colors"
+              onClick={() => navigate(-1)}
+              className="px-6 cursor-pointer py-3 rounded font-medium transition-colors"
               style={{ 
                 backgroundColor: colors.accent + '20',
                 color: colors.text 

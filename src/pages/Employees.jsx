@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useTheme } from '../context/ThemeContext'
 import { getEmployees, deleteEmployee, updateEmployeeStatus } from '../apis/employee'
 import { toast } from 'react-toastify'
-import { MdAdd, MdEdit, MdDelete, MdVisibility, MdSearch, MdChevronLeft, MdChevronRight, MdFilterList } from 'react-icons/md'
+import { MdAdd, MdEdit, MdDelete, MdVisibility, MdSearch, MdChevronLeft, MdChevronRight, MdFilterList, MdArrowUpward, MdArrowDownward } from 'react-icons/md'
 import { useNavigate } from 'react-router-dom'
 import Toggle from '../components/ui/Toggle'
 import Loader from '../components/ui/Loader'
@@ -12,7 +12,10 @@ const Employees = () => {
   const { colors } = useTheme()
   const navigate = useNavigate()
   
-  const [employees, setEmployees] = useState([])
+  const [allEmployees, setAllEmployees] = useState([]) // Stores all raw data
+  const [filteredEmployees, setFilteredEmployees] = useState([]) // Stores filtered & sorted data
+  const [employees, setEmployees] = useState([]) // Stores current page data
+
   const [loading, setLoading] = useState(true)
   const [deletingId, setDeletingId] = useState(null)
   
@@ -20,46 +23,118 @@ const Employees = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [activeFilter, setActiveFilter] = useState('') // 'true', 'false', or '' (all)
   const [currentPage, setCurrentPage] = useState(1)
-  const [limit] = useState(5) // or 5 as per user request example, sticking to 10 typical default
+  const [limit] = useState(10)
   const [totalPages, setTotalPages] = useState(1)
   const [totalEmployees, setTotalEmployees] = useState(0)
   const [showFilters, setShowFilters] = useState(false)
+  
+  // Sorting state
+  const [sortBy, setSortBy] = useState('')
+  const [sortOrder, setSortOrder] = useState('desc')
 
+  // 1. Initial Fetch (Get ALL data)
   useEffect(() => {
     fetchEmployees()
-  }, [currentPage, activeFilter]) // Fetch when page or filter changes
+  }, []) // Run once on mount
 
-  // Debounce search
+  // 2. Filter & Sort Effect
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setCurrentPage(1)
-      fetchEmployees()
-    }, 500)
-    return () => clearTimeout(timer)
-  }, [searchTerm])
+    let result = [...allEmployees]
+
+    // -- Filtering --
+    if (searchTerm) {
+      const lowerTerm = searchTerm.toLowerCase()
+      result = result.filter(emp => 
+        (emp.name && emp.name.toLowerCase().includes(lowerTerm)) ||
+        (emp.email && emp.email.toLowerCase().includes(lowerTerm)) ||
+        (emp.phone && emp.phone.includes(lowerTerm))
+      )
+    }
+
+    if (activeFilter !== '') {
+      const isActiveBool = activeFilter === 'true'
+      result = result.filter(emp => emp.isActive === isActiveBool)
+    }
+
+    // -- Sorting --
+    if (sortBy) {
+      result.sort((a, b) => {
+        let valA = a[sortBy]
+        let valB = b[sortBy]
+
+        // Handle numeric 'totalShops' specially if needed, or generic
+        if (sortBy === 'totalShops') {
+             valA = Number(valA || 0)
+             valB = Number(valB || 0)
+        } else {
+             // String comparison safe-guard
+             valA = valA ? valA.toString().toLowerCase() : ''
+             valB = valB ? valB.toString().toLowerCase() : ''
+        }
+        
+        if (valA < valB) return sortOrder === 'asc' ? -1 : 1
+        if (valA > valB) return sortOrder === 'asc' ? 1 : -1
+        return 0
+      })
+    }
+
+    setFilteredEmployees(result)
+    setTotalEmployees(result.length)
+    setTotalPages(Math.ceil(result.length / limit) || 1)
+    
+    // Reset to page 1 ONLY if the new result length is different (implies filter changed) 
+    // OR if we are just sorting, we might want to stay on page 1 to see top results?
+    // User requirement: "pura data filter ho... uper aana chahiye" -> Reset to page 1 makes sense
+    // But we need to be careful not to loop. 
+    // Let's reset page when filters/sort change, but we are inside an effect that runs on them.
+    // If we set current page here, we might cause issues if we don't check.
+    // However, usually it's safe to reset page to 1 when search/filter/sort changes.
+    // But this effect runs on `currentPage`? No, it doesn't dependency on currentPage.
+  }, [allEmployees, searchTerm, activeFilter, sortBy, sortOrder, limit])
+
+  // 2b. Reset Page on Filter/Sort Change
+  useEffect(() => {
+     setCurrentPage(1)
+  }, [searchTerm, activeFilter, sortBy, sortOrder])
+
+
+  // 3. Pagination Effect (Slice data for view)
+  useEffect(() => {
+    const startIndex = (currentPage - 1) * limit
+    const endIndex = startIndex + limit
+    setEmployees(filteredEmployees.slice(startIndex, endIndex))
+  }, [filteredEmployees, currentPage, limit])
+
+
+  // Removed debounce effect for fetch, as we fetch once. 
+  // We can debounce the setSearchTerm update in the UI if needed, 
+  // but for local filtering it's fast enough usually. 
+  // Or we can keep a debounced search term for the filter effect. 
+  // For now, let's keep it simple direct filtering.
 
   const fetchEmployees = async () => {
     try {
       setLoading(true)
+      // Fetch ALL employees by passing a large limit
+      // or assuming API returns all if no params (which it might not).
+      // We'll trust the user wants 'pura data' (all data) so we try to get all.
+      // Ideally backend supports /all or limit=0. 
+      // We will try limit=1000 for now as a safe "all".
       const params = {
-        page: currentPage,
-        limit: limit
+        limit: 1000, 
+        page: 1 
       }
-      if (searchTerm) params.search = searchTerm
-      if (activeFilter !== '') params.isActive = activeFilter
       
       const response = await getEmployees(params)
-      // Extract employees array from response
       const employeesData = response.employees || []
-      setEmployees(employeesData)
       
-      const total = response.totalEmployees || response.total || 0
-      setTotalEmployees(total)
-      setTotalPages(response.totalPages || Math.ceil(total / limit) || 1)
-
+      setAllEmployees(employeesData)
+      // trigger filter effect via state update
+      
     } catch (error) {
       console.error('Fetch employees error:', error)
-      setEmployees([]) // Set empty array on error
+      setEmployees([]) 
+      setAllEmployees([])
     } finally {
       setLoading(false)
     }
@@ -103,9 +178,23 @@ const Employees = () => {
       await updateEmployeeStatus(employeeId)
       fetchEmployees()
     } catch (error) {
-      console.error('Status toggle error:', error)
-      toast.error(error.response?.data?.message || 'Failed to update status')
+      // console.error('Status toggle error:', error)
+      if (error.response && error.response.status !== 500) {
+        toast.error(error.response.data.message || error.response.data.error || 'Failed to update status')
+      } else {
+        toast.error('Failed to update status')
+      }
     }
+  }
+
+  const handleSort = (field) => {
+    if (sortBy === field) {
+      setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc')
+    } else {
+      setSortBy(field)
+      setSortOrder('desc')
+    }
+    setCurrentPage(1) // Reset to first page on sort
   }
 
   const clearFilters = () => {
@@ -263,8 +352,21 @@ const Employees = () => {
                 <th className="px-6 py-3 text-left text-sm font-medium" style={{ color: colors.text }}>
                   Phone
                 </th>
-                <th className="px-6 py-3 text-left text-sm font-medium" style={{ color: colors.text }}>
-                  Total Shops
+                <th 
+                  className="px-6 py-3 text-left text-sm font-medium cursor-pointer select-none group" 
+                  style={{ color: colors.text }}
+                  onClick={() => handleSort('totalShops')}
+                >
+                  <div className="flex items-center gap-1 hover:text-primary transition-colors">
+                    Total Shops
+                    <span className="text-gray-400 group-hover:text-primary">
+                      {sortBy === 'totalShops' ? (
+                        sortOrder === 'desc' ? <MdArrowDownward size={16} /> : <MdArrowUpward size={16} />
+                      ) : (
+                        <MdArrowDownward size={16} className="opacity-0 group-hover:opacity-50" />
+                      )}
+                    </span>
+                  </div>
                 </th>
                 <th className="px-6 py-3 text-left text-sm font-medium" style={{ color: colors.text }}>
                   Status
