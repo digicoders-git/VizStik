@@ -200,7 +200,7 @@ const ManageShop = () => {
             />
             <input
               type="text"
-              placeholder="Search by shop name or owner name..."
+              placeholder="Search by shop code, Shop name or owner name..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 rounded border outline-none transition-all"
