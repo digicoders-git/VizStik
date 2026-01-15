@@ -1,0 +1,428 @@
+import React, { useState, useEffect } from "react";
+import { useTheme } from "../context/ThemeContext";
+import { getEmployees } from "../apis/employee";
+import { downloadOutletsExcel } from "../apis/outlet";
+import { toast } from "react-toastify";
+import { useNavigate, useParams } from "react-router-dom";
+import {
+  MdArrowBack,
+  MdStore,
+  MdPerson,
+  MdPhone,
+  MdLocationOn,
+  MdChevronLeft,
+  MdChevronRight,
+  MdDownload,
+  MdClose,
+} from "react-icons/md";
+import Loader from "../components/ui/Loader";
+
+const EmployeeAddedOutlets = () => {
+  const { colors } = useTheme();
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const [employee, setEmployee] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [downloading, setDownloading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const itemsPerPage = 5;
+
+  useEffect(() => {
+    fetchEmployee();
+  }, [id]);
+
+  const fetchEmployee = async () => {
+    try {
+      setLoading(true);
+      const response = await getEmployees();
+      const employeesData = response.data || [];
+      const emp = employeesData.find((emp) => emp._id == id);
+      if (emp) {
+        setEmployee(emp);
+      } else {
+        toast.error("Employee not found");
+        navigate("/dashboard/employees");
+      }
+    } catch (error) {
+      toast.error("Failed to fetch employee details");
+      navigate("/dashboard/employees");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDownload = async () => {
+    try {
+      setDownloading(true);
+      await downloadOutletsExcel(id);
+      toast.success("Excel downloaded successfully");
+    } catch (error) {
+      toast.error("Failed to download excel");
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader size={60} />
+      </div>
+    );
+  }
+
+  if (!employee) {
+    return null;
+  }
+
+  const outlets = employee.addedOutlet || [];
+
+  return (
+    <div className="p-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="p-2 cursor-pointer rounded transition-colors"
+            style={{
+              backgroundColor: colors.accent + "20",
+              color: colors.text,
+            }}
+          >
+            <MdArrowBack size={20} />
+          </button>
+          <div>
+            <h1 className="text-2xl font-bold" style={{ color: colors.text }}>
+              Outlets Added by {employee.dsName}
+            </h1>
+            <p className="text-sm" style={{ color: colors.textSecondary }}>
+              Total Outlets: {outlets.length}
+            </p>
+          </div>
+        </div>
+
+        <button
+          onClick={handleDownload}
+          disabled={downloading}
+          className="flex items-center cursor-pointer gap-2 px-4 py-2 rounded transition-all hover:opacity-90 shadow-sm"
+          style={{
+            backgroundColor: colors.primary,
+            color: colors.background,
+          }}
+        >
+          {downloading ? (
+            <Loader size={20} color={colors.background} />
+          ) : (
+            <MdDownload size={20} />
+          )}
+          <span>Download Excel</span>
+        </button>
+      </div>
+
+      <div
+        className="mb-8 p-6 rounded border shadow-sm flex flex-wrap items-center gap-6"
+        style={{
+          backgroundColor: colors.background,
+          borderColor: colors.accent + "30",
+        }}
+      >
+        <div className="flex items-center gap-4">
+          <div
+            className="w-16 h-16 rounded-full flex items-center justify-center"
+            style={{ backgroundColor: colors.primary + "20" }}
+          >
+            <MdPerson size={32} style={{ color: colors.primary }} />
+          </div>
+          <div>
+            <h2 className="text-lg font-bold" style={{ color: colors.text }}>
+              {employee.dsName}
+            </h2>
+            <p className="text-sm" style={{ color: colors.textSecondary }}>
+              {employee.typeOfDs}
+            </p>
+          </div>
+        </div>
+
+        <div
+          className="h-10 w-px bg-gray-200 hidden md:block"
+          style={{ backgroundColor: colors.accent + "30" }}
+        ></div>
+
+        <div className="flex flex-col gap-1">
+          <div
+            className="flex items-center gap-2 text-sm"
+            style={{ color: colors.text }}
+          >
+            <MdPhone size={16} style={{ color: colors.primary }} />
+            {employee.dsMobile}
+          </div>
+          <div className="text-sm" style={{ color: colors.textSecondary }}>
+            WD Code: {employee.WD_Code}
+          </div>
+        </div>
+      </div>
+
+      <div
+        className="rounded border shadow-sm overflow-hidden"
+        style={{
+          backgroundColor: colors.background,
+          borderColor: colors.accent + "30",
+        }}
+      >
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead style={{ backgroundColor: colors.accent + "10" }}>
+              <tr>
+                <th
+                  className="px-6 py-3 text-left text-sm font-medium"
+                  style={{ color: colors.text }}
+                >
+                  Activity
+                </th>
+                <th
+                  className="px-6 py-3 text-left text-sm font-medium"
+                  style={{ color: colors.text }}
+                >
+                  Image
+                </th>
+                <th
+                  className="px-6 py-3 text-left text-sm font-medium"
+                  style={{ color: colors.text }}
+                >
+                  Mobile
+                </th>
+                <th
+                  className="px-6 py-3 text-left text-sm font-medium"
+                  style={{ color: colors.text }}
+                >
+                  Location
+                </th>
+                <th
+                  className="px-6 py-3 text-left text-sm font-medium"
+                  style={{ color: colors.text }}
+                >
+                  WD Code
+                </th>
+                <th
+                  className="px-6 py-3 text-left text-sm font-medium"
+                  style={{ color: colors.text }}
+                >
+                  Added On
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {outlets.length > 0 ? (
+                outlets
+                  .slice(
+                    (currentPage - 1) * itemsPerPage,
+                    currentPage * itemsPerPage
+                  )
+                  .map((outlet, index) => (
+                    <tr
+                      key={outlet._id || index}
+                      className="border-t hover:bg-opacity-50 transition-colors"
+                      style={{
+                        borderColor: colors.accent + "20",
+                      }}
+                    >
+                      <td
+                        className="px-6 py-4 text-sm"
+                        style={{ color: colors.text }}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div
+                            className="p-2 rounded"
+                            style={{ backgroundColor: colors.primary + "10" }}
+                          >
+                            <MdStore
+                              size={20}
+                              style={{ color: colors.primary }}
+                            />
+                          </div>
+                          <div>
+                            <div className="font-medium">{outlet.activity}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-sm">
+                        {outlet.outletImages &&
+                        outlet.outletImages.length > 0 ? (
+                          <img
+                            src={outlet.outletImages[0].url}
+                            alt="Outlet"
+                            className="w-12 h-12 rounded object-cover cursor-pointer hover:opacity-80 transition-opacity"
+                            onClick={() =>
+                              setSelectedImage(outlet.outletImages[0].url)
+                            }
+                          />
+                        ) : (
+                          <div
+                            className="w-12 h-12 rounded flex items-center justify-center text-xs"
+                            style={{
+                              backgroundColor: colors.accent + "10",
+                              color: colors.textSecondary,
+                            }}
+                          >
+                            No Image
+                          </div>
+                        )}
+                      </td>
+                      <td
+                        className="px-6 py-4 text-sm"
+                        style={{ color: colors.text }}
+                      >
+                        {outlet.outletMobile}
+                      </td>
+                      <td
+                        className="px-6 py-4 text-sm"
+                        style={{ color: colors.text }}
+                      >
+                        <div className="flex items-center gap-1">
+                          <MdLocationOn size={16} className="opacity-50" />
+                          {outlet.location?.latitude},{" "}
+                          {outlet.location?.longitude}
+                        </div>
+                      </td>
+                      <td
+                        className="px-6 py-4 text-sm"
+                        style={{ color: colors.text }}
+                      >
+                        {employee.WD_Code}
+                      </td>
+                      <td
+                        className="px-6 py-4 text-sm"
+                        style={{ color: colors.text }}
+                      >
+                        {new Date(outlet.createdAt).toLocaleDateString()}
+                      </td>
+                    </tr>
+                  ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan="6"
+                    className="px-6 py-8 text-center"
+                    style={{ color: colors.textSecondary }}
+                  >
+                    No outlets added by this employee yet.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {outlets.length > itemsPerPage && (
+        <div
+          className="mt-4 flex items-center justify-between"
+          style={{ color: colors.text }}
+        >
+          <div className="text-sm">
+            Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
+            {Math.min(currentPage * itemsPerPage, outlets.length)} of{" "}
+            {outlets.length} entries
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="p-2 rounded border disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                borderColor: colors.accent + "30",
+                color: colors.text,
+              }}
+            >
+              <MdChevronLeft size={20} />
+            </button>
+            <div className="flex gap-1">
+              {Array.from(
+                { length: Math.ceil(outlets.length / itemsPerPage) },
+                (_, i) => i + 1
+              )
+                .filter((page) => {
+                  const totalPages = Math.ceil(outlets.length / itemsPerPage);
+                  return (
+                    page === 1 ||
+                    page === totalPages ||
+                    Math.abs(page - currentPage) <= 1
+                  );
+                })
+                .map((page, index, array) => (
+                  <React.Fragment key={page}>
+                    {index > 0 && array[index - 1] !== page - 1 && (
+                      <span className="px-2">...</span>
+                    )}
+                    <button
+                      onClick={() => setCurrentPage(page)}
+                      className={`w-8 h-8 rounded text-sm font-medium transition-colors ${
+                        currentPage === page
+                          ? "bg-primary text-white"
+                          : "hover:bg-gray-100"
+                      }`}
+                      style={{
+                        backgroundColor:
+                          currentPage === page ? colors.primary : "transparent",
+                        color:
+                          currentPage === page
+                            ? colors.background
+                            : colors.text,
+                        border:
+                          currentPage !== page
+                            ? `1px solid ${colors.accent}30`
+                            : "none",
+                      }}
+                    >
+                      {page}
+                    </button>
+                  </React.Fragment>
+                ))}
+            </div>
+            <button
+              onClick={() =>
+                setCurrentPage((prev) =>
+                  Math.min(prev + 1, Math.ceil(outlets.length / itemsPerPage))
+                )
+              }
+              disabled={
+                currentPage === Math.ceil(outlets.length / itemsPerPage)
+              }
+              className="p-2 rounded border disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                borderColor: colors.accent + "30",
+                color: colors.text,
+              }}
+            >
+              <MdChevronRight size={20} />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Image Modal */}
+      {selectedImage && (
+        <div
+          className="fixed inset-0 z-999 bg-black bg-opacity-90 flex items-center justify-center p-4"
+          onClick={() => setSelectedImage(null)}
+        >
+          <button
+            className="absolute top-6 right-6 text-white hover:text-gray-300 transition-colors"
+            onClick={() => setSelectedImage(null)}
+          >
+            <MdClose size={40} />
+          </button>
+          <img
+            src={selectedImage}
+            alt="Full view"
+            className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default EmployeeAddedOutlets;

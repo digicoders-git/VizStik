@@ -1,60 +1,76 @@
-import React, { useState, useEffect } from 'react'
-import { useTheme } from '../context/ThemeContext'
-import { getEmployees } from '../apis/employee'
-import { toast } from 'react-toastify'
-import { useNavigate, useParams } from 'react-router-dom'
-import { MdArrowBack, MdEdit, MdPerson, MdEmail, MdWork, MdBusiness, MdPhone, MdAttachMoney, MdOutlineRealEstateAgent } from 'react-icons/md'
-import Loader from '../components/ui/Loader'
+import React, { useState, useEffect } from "react";
+import { useTheme } from "../context/ThemeContext";
+import { getEmployees } from "../apis/employee";
+import { toast } from "react-toastify";
+import { useNavigate, useParams } from "react-router-dom";
+import {
+  MdArrowBack,
+  MdEdit,
+  MdPerson,
+  MdEmail,
+  MdWork,
+  MdBusiness,
+  MdPhone,
+  MdAttachMoney,
+  MdOutlineRealEstateAgent,
+} from "react-icons/md";
+import Loader from "../components/ui/Loader";
 import { FaCity } from "react-icons/fa";
 import { PiMapPinArea } from "react-icons/pi";
 
 const ViewEmployee = () => {
-  const { colors } = useTheme()
-  const navigate = useNavigate()
-  const { id } = useParams()
-  const [employee, setEmployee] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const { colors } = useTheme();
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const [employee, setEmployee] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchEmployee()
-  }, [id])
+    fetchEmployee();
+  }, [id]);
 
   const fetchEmployee = async () => {
     try {
-      const response = await getEmployees()
-      const employeesData = response.employees || []
-      const emp = employeesData.find(emp => emp._id == id)
+      const response = await getEmployees();
+      const employeesData = response.data || [];
+      const emp = employeesData.find((emp) => emp._id == id);
       if (emp) {
-        setEmployee(emp)
+        setEmployee(emp);
       } else {
-        toast.error('Employee not found')
-        navigate('/dashboard/employees')
+        toast.error("Employee not found");
+        navigate("/dashboard/employees");
       }
     } catch (error) {
       if (error.response && error.response.status !== 500) {
-        toast.error(error.response.data.message || error.response.data.error || 'Failed to fetch employee data')
+        toast.error(
+          error.response.data.message ||
+            error.response.data.error ||
+            "Failed to fetch employee data"
+        );
       } else {
-        toast.error('Failed to fetch employee data')
+        toast.error("Failed to fetch employee data");
       }
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <Loader size={40}/>
+        <Loader size={40} />
       </div>
-    )
+    );
   }
 
   if (!employee) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="text-lg" style={{ color: colors.text }}>Employee not found</div>
+        <div className="text-lg" style={{ color: colors.text }}>
+          Employee not found
+        </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -64,9 +80,9 @@ const ViewEmployee = () => {
           <button
             onClick={() => navigate(-1)}
             className="p-2 cursor-pointer rounded transition-colors"
-            style={{ 
-              backgroundColor: colors.accent + '20',
-              color: colors.text 
+            style={{
+              backgroundColor: colors.accent + "20",
+              color: colors.text,
             }}
           >
             <MdArrowBack size={20} />
@@ -75,13 +91,13 @@ const ViewEmployee = () => {
             Employee Details
           </h1>
         </div>
-        
+
         <button
           onClick={() => navigate(`/dashboard/employees/edit/${id}`)}
           className="flex cursor-pointer items-center gap-2 px-4 py-2 rounded font-medium transition-colors"
-          style={{ 
-            backgroundColor: colors.primary, 
-            color: colors.background 
+          style={{
+            backgroundColor: colors.primary,
+            color: colors.background,
           }}
         >
           <MdEdit size={20} />
@@ -89,41 +105,45 @@ const ViewEmployee = () => {
         </button>
       </div>
 
-      <div 
+      <div
         className="w-full rounded border shadow-sm p-6"
-        style={{ 
-          backgroundColor: colors.background, 
-          borderColor: colors.accent + '30' 
+        style={{
+          backgroundColor: colors.background,
+          borderColor: colors.accent + "30",
         }}
       >
         <div className="space-y-6">
-          <div className="flex items-center gap-4 pb-4 border-b" style={{ borderColor: colors.accent + '20' }}>
-            <div 
+          <div
+            className="flex items-center gap-4 pb-4 border-b"
+            style={{ borderColor: colors.accent + "20" }}
+          >
+            <div
               className="w-16 h-16 rounded-full flex items-center justify-center"
-              style={{ backgroundColor: colors.primary + '20' }}
+              style={{ backgroundColor: colors.primary + "20" }}
             >
               <MdPerson size={32} style={{ color: colors.primary }} />
             </div>
             <div>
               <h2 className="text-xl font-bold" style={{ color: colors.text }}>
-                {employee.name}
+                {employee.dsName}
               </h2>
-              <p style={{ color: colors.textSecondary }}>
-                {employee.designation}
-              </p>
+              <p style={{ color: colors.textSecondary }}>{employee.typeOfDs}</p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <MdEmail size={20} style={{ color: colors.primary }} />
+                <MdBusiness size={20} style={{ color: colors.primary }} />
                 <div>
-                  <p className="text-sm font-medium" style={{ color: colors.textSecondary }}>
-                    Email
+                  <p
+                    className="text-sm font-medium"
+                    style={{ color: colors.textSecondary }}
+                  >
+                    WD Code
                   </p>
                   <p style={{ color: colors.text }}>
-                    {employee.email}
+                    {employee.WD_Code || employee.wdCode}
                   </p>
                 </div>
               </div>
@@ -131,95 +151,93 @@ const ViewEmployee = () => {
               <div className="flex items-center gap-3">
                 <MdWork size={20} style={{ color: colors.primary }} />
                 <div>
-                  <p className="text-sm font-medium" style={{ color: colors.textSecondary }}>
-                    Designation
+                  <p
+                    className="text-sm font-medium"
+                    style={{ color: colors.textSecondary }}
+                  >
+                    Type
                   </p>
-                  <p style={{ color: colors.text }}>
-                    {employee.designation}
-                  </p>
+                  <p style={{ color: colors.text }}>{employee.typeOfDs}</p>
                 </div>
               </div>
 
-              {employee.phone && (
+              {employee.dsMobile && (
                 <div className="flex items-center gap-3">
                   <MdPhone size={20} style={{ color: colors.primary }} />
                   <div>
-                    <p className="text-sm font-medium" style={{ color: colors.textSecondary }}>
+                    <p
+                      className="text-sm font-medium"
+                      style={{ color: colors.textSecondary }}
+                    >
                       Phone
                     </p>
-                    <p style={{ color: colors.text }}>
-                      {employee.phone}
-                    </p>
+                    <p style={{ color: colors.text }}>{employee.dsMobile}</p>
                   </div>
                 </div>
               )}
 
-              {employee.state && (
+              {employee.Branch && (
                 <div className="flex items-center gap-3">
-                  <MdOutlineRealEstateAgent size={20} style={{ color: colors.primary }} />
+                  <MdOutlineRealEstateAgent
+                    size={20}
+                    style={{ color: colors.primary }}
+                  />
                   <div>
-                    <p className="text-sm font-medium" style={{ color: colors.textSecondary }}>
-                      State
+                    <p
+                      className="text-sm font-medium"
+                      style={{ color: colors.textSecondary }}
+                    >
+                      Branch
                     </p>
-                    <p style={{ color: colors.text }}>
-                      {employee.state}
-                    </p>
+                    <p style={{ color: colors.text }}>{employee.Branch}</p>
                   </div>
                 </div>
               )}
 
-              {employee.city && (
+              {employee.City && (
                 <div className="flex items-center gap-3">
                   <FaCity size={20} style={{ color: colors.primary }} />
                   <div>
-                    <p className="text-sm font-medium" style={{ color: colors.textSecondary }}>
+                    <p
+                      className="text-sm font-medium"
+                      style={{ color: colors.textSecondary }}
+                    >
                       City
                     </p>
-                    <p style={{ color: colors.text }}>
-                      {employee.city}
-                    </p>
+                    <p style={{ color: colors.text }}>{employee.City}</p>
                   </div>
                 </div>
               )}
 
-              {employee.area && (
+              {employee.Circle_AM && (
                 <div className="flex items-center gap-3">
                   <PiMapPinArea size={20} style={{ color: colors.primary }} />
                   <div>
-                    <p className="text-sm font-medium" style={{ color: colors.textSecondary }}>
-                      Area
+                    <p
+                      className="text-sm font-medium"
+                      style={{ color: colors.textSecondary }}
+                    >
+                      Circle AM
                     </p>
-                    <p style={{ color: colors.text }}>
-                      {employee.area}
-                    </p>
+                    <p style={{ color: colors.text }}>{employee.Circle_AM}</p>
                   </div>
                 </div>
               )}
-
-              <div className="flex items-center gap-3">
-                <div>
-                  <p className="text-sm font-medium" style={{ color: colors.textSecondary }}>
-                    Password
-                  </p>
-                  <p style={{ color: colors.text }}>
-                    {employee.password}
-                  </p>
-                </div>
-              </div>
-
-              
             </div>
 
             <div className="space-y-4">
               {employee.profilePhoto?.url && (
                 <div className="flex items-center gap-3">
                   <div>
-                    <p className="text-sm font-medium" style={{ color: colors.textSecondary }}>
+                    <p
+                      className="text-sm font-medium"
+                      style={{ color: colors.textSecondary }}
+                    >
                       Profile Photo
                     </p>
-                    <img 
-                      src={employee.profilePhoto.url} 
-                      alt="Profile" 
+                    <img
+                      src={employee.profilePhoto.url}
+                      alt="Profile"
                       className="w-32 h-32 rounded object-cover mt-2"
                     />
                   </div>
@@ -229,7 +247,10 @@ const ViewEmployee = () => {
               {employee.lastLogin && (
                 <div className="flex items-center gap-3">
                   <div>
-                    <p className="text-sm font-medium" style={{ color: colors.textSecondary }}>
+                    <p
+                      className="text-sm font-medium"
+                      style={{ color: colors.textSecondary }}
+                    >
                       Last Login
                     </p>
                     <p style={{ color: colors.text }}>
@@ -242,7 +263,10 @@ const ViewEmployee = () => {
               {employee.createdAt && (
                 <div className="flex items-center gap-3">
                   <div>
-                    <p className="text-sm font-medium" style={{ color: colors.textSecondary }}>
+                    <p
+                      className="text-sm font-medium"
+                      style={{ color: colors.textSecondary }}
+                    >
                       Joined Date
                     </p>
                     <p style={{ color: colors.text }}>
@@ -255,7 +279,10 @@ const ViewEmployee = () => {
               {employee.updatedAt && (
                 <div className="flex items-center gap-3">
                   <div>
-                    <p className="text-sm font-medium" style={{ color: colors.textSecondary }}>
+                    <p
+                      className="text-sm font-medium"
+                      style={{ color: colors.textSecondary }}
+                    >
                       Last Updated
                     </p>
                     <p style={{ color: colors.text }}>
@@ -267,10 +294,19 @@ const ViewEmployee = () => {
 
               <div className="flex items-center gap-3">
                 <div>
-                  <p className="text-sm font-medium" style={{ color: colors.textSecondary }}>
+                  <p
+                    className="text-sm font-medium"
+                    style={{ color: colors.textSecondary }}
+                  >
                     Employee ID
                   </p>
-                  <p style={{ color: colors.text, fontSize: '12px', fontFamily: 'monospace' }}>
+                  <p
+                    style={{
+                      color: colors.text,
+                      fontSize: "12px",
+                      fontFamily: "monospace",
+                    }}
+                  >
                     {employee._id}
                   </p>
                 </div>
@@ -278,15 +314,20 @@ const ViewEmployee = () => {
 
               <div className="flex items-center gap-3">
                 <div>
-                  <p className="text-sm font-medium" style={{ color: colors.textSecondary }}>
+                  <p
+                    className="text-sm font-medium"
+                    style={{ color: colors.textSecondary }}
+                  >
                     Status
                   </p>
-                  <span 
+                  <span
                     className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      employee.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      employee.isActive
+                        ? "bg-green-100 text-green-800"
+                        : "bg-red-100 text-red-800"
                     }`}
                   >
-                    {employee.isActive ? 'Active' : 'Inactive'}
+                    {employee.isActive ? "Active" : "Inactive"}
                   </span>
                 </div>
               </div>
@@ -295,7 +336,7 @@ const ViewEmployee = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default ViewEmployee
+export default ViewEmployee;

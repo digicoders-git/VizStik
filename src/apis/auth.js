@@ -1,14 +1,14 @@
 import http from "./http";
 
-export const adminLogin = async ({ email, password }) => {
+export const adminLogin = async ({ name, password }) => {
   // console.log('Auth.js - Received params:', { adminId, password });
-  
+
   try {
-    const response = await http.post("/admin/login", {
-      email,
+    const response = await http.post("/admins/login", {
+      name,
       password,
     });
-    
+
     console.log('Auth.js - API Response:', response);
     return response.data;
   } catch (error) {
