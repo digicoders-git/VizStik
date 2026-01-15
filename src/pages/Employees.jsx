@@ -87,6 +87,16 @@ const Employees = () => {
     }
   }, [location.state]);
 
+  // Handle Branch query param from Branch Analysis page
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    const branchQuery = queryParams.get("branch");
+    if (branchQuery) {
+      setBranchFilter(branchQuery);
+      setShowFilters(true);
+    }
+  }, [location.search]);
+
   // Removed debounce effect for fetch, as we fetch once.
   // We can debounce the setSearchTerm update in the UI if needed,
   // but for local filtering it's fast enough usually.
@@ -277,13 +287,13 @@ const Employees = () => {
         {/* Filter Options */}
         {showFilters && (
           <div
-            className="flex flex-col md:flex-row gap-4 p-4 rounded border"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-4 rounded border"
             style={{
               backgroundColor: colors.sidebar || colors.background,
               borderColor: colors.accent + "30",
             }}
           >
-            <div className="flex-1">
+            <div className="w-full">
               <label
                 className="block text-sm font-medium mb-2"
                 style={{ color: colors.text }}
@@ -310,7 +320,7 @@ const Employees = () => {
             </div>
 
             {role !== "Branch" && (
-              <div className="flex-1">
+              <div className="w-full">
                 <label
                   className="block text-sm font-medium mb-2"
                   style={{ color: colors.text }}
@@ -335,7 +345,7 @@ const Employees = () => {
               </div>
             )}
 
-            <div className="flex-1">
+            <div className="w-full">
               <label
                 className="block text-sm font-medium mb-2"
                 style={{ color: colors.text }}
@@ -360,7 +370,7 @@ const Employees = () => {
             </div>
 
             {role === "admin" && (
-              <div className="flex-1">
+              <div className="w-full">
                 <label
                   className="block text-sm font-medium mb-2"
                   style={{ color: colors.text }}
@@ -386,7 +396,7 @@ const Employees = () => {
             )}
 
             {(role === "admin" || role === "Circle_AM") && (
-              <div className="flex-1">
+              <div className="w-full">
                 <label
                   className="block text-sm font-medium mb-2"
                   style={{ color: colors.text }}
@@ -411,7 +421,7 @@ const Employees = () => {
               </div>
             )}
 
-            <div className="flex-1">
+            <div className="w-full">
               <label
                 className="block text-sm font-medium mb-2"
                 style={{ color: colors.text }}
@@ -434,7 +444,7 @@ const Employees = () => {
               />
             </div>
 
-            <div className="flex-1">
+            <div className="w-full">
               <label
                 className="block text-sm font-medium mb-2"
                 style={{ color: colors.text }}
@@ -457,16 +467,16 @@ const Employees = () => {
               />
             </div>
 
-            <div className="flex items-end">
+            <div className="flex items-end w-full">
               <button
                 onClick={clearFilters}
-                className="px-4 cursor-pointer py-2 rounded transition-all"
+                className="px-4 cursor-pointer py-2 rounded transition-all w-full md:w-auto"
                 style={{
                   backgroundColor: colors.primary + "20",
                   color: colors.primary,
                 }}
               >
-                Clear Filters
+                Clear
               </button>
             </div>
           </div>
@@ -780,7 +790,7 @@ const Employees = () => {
                     )}
                     <button
                       onClick={() => setCurrentPage(page)}
-                      className={`w-8 h-8 rounded text-sm font-medium transition-colors ${
+                      className={`w-8 h-8 cursor-pointer rounded text-sm font-medium transition-colors ${
                         currentPage === page
                           ? "bg-primary text-white"
                           : "hover:bg-gray-100"
@@ -808,7 +818,7 @@ const Employees = () => {
                 setCurrentPage((prev) => Math.min(prev + 1, totalPages))
               }
               disabled={currentPage === totalPages}
-              className="p-2 rounded border disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-2 cursor-pointer rounded border disabled:opacity-50 disabled:cursor-not-allowed"
               style={{
                 borderColor: colors.accent + "30",
                 color: colors.text,

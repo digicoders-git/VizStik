@@ -558,7 +558,7 @@ const ManageOutlet = () => {
             <button
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
-              className="p-2 rounded border disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-2 cursor-pointer rounded border disabled:opacity-50 disabled:cursor-not-allowed"
               style={{
                 borderColor: colors.accent + "30",
                 color: colors.text,
@@ -629,7 +629,7 @@ const ManageOutlet = () => {
           onClick={() => setSelectedImage(null)}
         >
           <button
-            className="absolute top-6 right-6 text-white hover:text-gray-300 transition-colors"
+            className="absolute top-6 right-6 cursor-pointer text-white hover:text-gray-300 transition-colors"
             onClick={() => setSelectedImage(null)}
           >
             <MdClose size={40} />

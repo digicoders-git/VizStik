@@ -12,6 +12,7 @@ import {
   MdStorefront,
   MdPerson,
   MdTableChart,
+  MdBusiness,
 } from "react-icons/md";
 
 import { Clock } from "./Clock";
@@ -105,6 +106,12 @@ const Dashboard = () => {
       icon: MdTableChart,
       path: "/dashboard/master-data",
       visible: ["admin", "Branch", "Circle_AM", "Section_AE"].includes(role),
+    },
+    {
+      name: "Branch Analysis",
+      icon: MdBusiness,
+      path: "/dashboard/branch-analysis",
+      visible: ["admin"].includes(role),
     },
     { name: "Profile", icon: MdPerson, path: "/dashboard/profile" },
   ];
