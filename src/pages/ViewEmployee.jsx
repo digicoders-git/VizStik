@@ -92,7 +92,7 @@ const ViewEmployee = () => {
           </h1>
         </div>
 
-        <button
+        {/* <button
           onClick={() => navigate(`/dashboard/employees/edit/${id}`)}
           className="flex cursor-pointer items-center gap-2 px-4 py-2 rounded font-medium transition-colors"
           style={{
@@ -102,7 +102,7 @@ const ViewEmployee = () => {
         >
           <MdEdit size={20} />
           Edit Employee
-        </button>
+        </button> */}
       </div>
 
       <div

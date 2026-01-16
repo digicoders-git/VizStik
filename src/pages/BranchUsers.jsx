@@ -23,8 +23,9 @@ const BranchUsers = () => {
   const [loading, setLoading] = useState(true);
 
   // Edit state
+  // Edit state
   const [editingUser, setEditingUser] = useState(null);
-  const [editForm, setEditForm] = useState({ password: "" });
+  const [editForm, setEditForm] = useState({ name: "", password: "" });
   const [showPassword, setShowPassword] = useState({}); // Map of userId -> boolean
 
   useEffect(() => {
@@ -52,41 +53,28 @@ const BranchUsers = () => {
 
   const handleEditClick = (user) => {
     setEditingUser(user._id);
-    setEditForm({ password: user.password }); // Pre-fill with existing password (visible to admin)
+    setEditForm({ name: user.name, password: user.password });
   };
 
   const handleCancelEdit = () => {
     setEditingUser(null);
-    setEditForm({ password: "" });
+    setEditForm({ name: "", password: "" });
   };
 
   const handleSave = async (userId) => {
     try {
-      if (!editForm.password) {
-        toast.error("Password cannot be empty");
+      if (!editForm.name || !editForm.password) {
+        toast.error("Username and Password cannot be empty");
         return;
       }
 
-      // Call API to update password
-      // Assuming updateLoginUser or similar exists. If not, we use updateEmployeeStatus but that's for status.
-      // We have updateLoginPassword in login.controller. But we need to call it from frontend.
-      // Let's assume we have an API function for it.
-
-      // Since I haven't checked existing 'updateLoginUser' API in frontend, I'll assume I need to make one or use fetch directly or add it to apis/admin.js in next step.
-      // For now, I will use a placeholder function call and define it in apis/admin.js
-
       const response = await updateLoginUser(userId, {
-        newPassword: editForm.password,
-        oldPassword: users.find((u) => u._id === userId).password,
+        name: editForm.name,
+        password: editForm.password,
       });
-      // Wait, updateLoginPassword usually requires old password for security.
-      // But Admin should be able to reset without old password ideally.
-      // The backend `updateLoginPassword` checks `oldPassword`.
-      // If I need to force update, I might need a different endpoint.
-      // HOWEVER, since we have the plain text password visible in the table (fetched from backend), we can pass it as oldPassword!
 
       if (response.success) {
-        toast.success("Password updated successfully");
+        toast.success("User updated successfully");
         setEditingUser(null);
         fetchUsers(); // Refresh
       } else {
@@ -94,7 +82,7 @@ const BranchUsers = () => {
       }
     } catch (error) {
       console.error(error);
-      toast.error("Failed to update password");
+      toast.error("Failed to update user");
     }
   };
 
@@ -167,7 +155,23 @@ const BranchUsers = () => {
                     className="px-6 py-4 font-medium"
                     style={{ color: colors.text }}
                   >
-                    {user.name}
+                    {editingUser === user._id ? (
+                      <input
+                        type="text"
+                        value={editForm.name}
+                        onChange={(e) =>
+                          setEditForm({ ...editForm, name: e.target.value })
+                        }
+                        className="px-3 py-1.5 rounded border outline-none w-full"
+                        style={{
+                          backgroundColor: colors.background,
+                          borderColor: colors.primary,
+                          color: colors.text,
+                        }}
+                      />
+                    ) : (
+                      user.name
+                    )}
                   </td>
                   <td className="px-6 py-4">
                     {editingUser === user._id ? (
@@ -177,7 +181,7 @@ const BranchUsers = () => {
                         onChange={(e) =>
                           setEditForm({ ...editForm, password: e.target.value })
                         }
-                        className="px-3 py-1.5 rounded border outline-none"
+                        className="px-3 py-1.5 rounded border outline-none w-full"
                         style={{
                           backgroundColor: colors.background,
                           borderColor: colors.primary,

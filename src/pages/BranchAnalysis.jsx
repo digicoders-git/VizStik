@@ -105,6 +105,12 @@ const BranchAnalysis = () => {
                   >
                     Section AEs
                   </th>
+                  <th
+                    className="px-6 py-4 text-center font-semibold"
+                    style={{ color: colors.text }}
+                  >
+                    Branch Login
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -171,12 +177,25 @@ const BranchAnalysis = () => {
                         {item.sectionAECount} Section AEs
                       </button>
                     </td>
+
+                    <td className="px-6 py-4 text-center">
+                      <button
+                        onClick={() => handleRoleClick(item.branch, "Branch")}
+                        className="px-4 py-1.5 cursor-pointer rounded-full font-bold text-sm transition-all hover:scale-105"
+                        style={{
+                          backgroundColor: "#f59e0b15", // Amber tint
+                          color: "#f59e0b",
+                        }}
+                      >
+                        Manage
+                      </button>
+                    </td>
                   </tr>
                 ))}
                 {data.length === 0 && (
                   <tr>
                     <td
-                      colSpan="4"
+                      colSpan="5"
                       className="px-6 py-8 text-center"
                       style={{ color: colors.textSecondary }}
                     >
