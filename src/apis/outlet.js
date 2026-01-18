@@ -26,7 +26,7 @@ export const getOutletById = async (id) => {
 
 // Delete outlet
 export const deleteOutlet = async (id) => {
-  const response = await http.delete(`/outlets/delete/${id}`);
+  const response = await http.delete(`/outlets/admin/delete/${id}`);
   return response.data;
 };
 

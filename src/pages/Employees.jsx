@@ -16,6 +16,7 @@ import {
   MdArrowUpward,
   MdArrowDownward,
   MdDownload,
+  MdDelete,
 } from "react-icons/md";
 import { useNavigate, useLocation } from "react-router-dom";
 import Toggle from "../components/ui/Toggle";
@@ -39,7 +40,7 @@ const Employees = () => {
   // Search, Filter, Pagination states
   const [searchTerm, setSearchTerm] = useState("");
   const [activeFilter, setActiveFilter] = useState(
-    location.state?.initialStatus || ""
+    location.state?.initialStatus || "",
   ); // 'true', 'false', or '' (all)
   const [branchFilter, setBranchFilter] = useState("");
   const [cityFilter, setCityFilter] = useState("");
@@ -53,7 +54,7 @@ const Employees = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalEmployees, setTotalEmployees] = useState(0);
   const [showFilters, setShowFilters] = useState(
-    !!location.state?.initialStatus
+    !!location.state?.initialStatus,
   );
 
   // Sorting state
@@ -168,7 +169,40 @@ const Employees = () => {
     }
   };
 
-  // Delete functionality removed as per requirements
+  const handleDelete = async (employeeId, employeeName) => {
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: `Do you want to delete ${employeeName}? This action cannot be undone!`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: colors.primary,
+      cancelButtonColor: "#6c757d",
+      confirmButtonText: "Yes, delete it!",
+      cancelButtonText: "Cancel",
+    });
+
+    if (result.isConfirmed) {
+      try {
+        setDeletingId(employeeId);
+        await deleteEmployee(employeeId);
+        toast.success("Employee deleted successfully");
+        fetchEmployees();
+      } catch (error) {
+        console.error("Delete error:", error);
+        if (error.response && error.response.status !== 500) {
+          toast.error(
+            error.response.data.message ||
+              error.response.data.error ||
+              "Failed to delete employee",
+          );
+        } else {
+          toast.error("Failed to delete employee");
+        }
+      } finally {
+        setDeletingId(null);
+      }
+    }
+  };
 
   const handleStatusToggle = async (employeeId) => {
     try {
@@ -180,7 +214,7 @@ const Employees = () => {
         toast.error(
           error.response.data.message ||
             error.response.data.error ||
-            "Failed to update status"
+            "Failed to update status",
         );
       } else {
         toast.error("Failed to update status");
@@ -610,7 +644,7 @@ const Employees = () => {
               {loading ? (
                 <tr>
                   <td
-                    colSpan="10"
+                    colSpan="12"
                     className="px-4 py-12 text-center"
                     style={{ color: colors.textSecondary }}
                   >
@@ -619,7 +653,7 @@ const Employees = () => {
                 </tr>
               ) : employees.length === 0 ? (
                 <tr>
-                  <td colSpan="10" className="text-center py-8">
+                  <td colSpan="12" className="text-center py-8">
                     <p style={{ color: colors.textSecondary }}>
                       No employees found
                     </p>
@@ -703,7 +737,7 @@ const Employees = () => {
                         <button
                           onClick={() =>
                             navigate(
-                              `/dashboard/employees/${employee._id}/outlets`
+                              `/dashboard/employees/${employee._id}/outlets`,
                             )
                           }
                           className="flex items-center gap-1 px-2 py-1 rounded text-xs transition-all hover:scale-105 active:scale-95 cursor-pointer"
@@ -729,7 +763,7 @@ const Employees = () => {
                         <button
                           onClick={() =>
                             navigate(
-                              `/dashboard/employees/view/${employee._id}`
+                              `/dashboard/employees/view/${employee._id}`,
                             )
                           }
                           className="p-2 cursor-pointer rounded transition-colors"
@@ -740,6 +774,24 @@ const Employees = () => {
                           title="View"
                         >
                           <MdVisibility size={16} />
+                        </button>
+                        <button
+                          onClick={() =>
+                            handleDelete(employee._id, employee.dsName)
+                          }
+                          disabled={deletingId === employee._id}
+                          className="p-2 cursor-pointer rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          style={{
+                            backgroundColor: "#dc354520",
+                            color: "#dc3545",
+                          }}
+                          title="Delete"
+                        >
+                          {deletingId === employee._id ? (
+                            <Loader size={16} color="#dc3545" />
+                          ) : (
+                            <MdDelete size={16} />
+                          )}
                         </button>
                       </div>
                     </td>

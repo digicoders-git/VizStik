@@ -26,6 +26,7 @@ const ViewOutlet = () => {
   const [showMapModal, setShowMapModal] = useState(false);
 
   const tabs = ["Overview", "Employee", "Location", "Images"];
+  console.log(outlet)
 
   useEffect(() => {
     const fetchOutlet = async () => {

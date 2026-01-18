@@ -104,6 +104,8 @@ const ManageOutlet = () => {
     });
   };
 
+
+
   const handleDownload = async () => {
     try {
       setDownloading(true);
