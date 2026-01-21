@@ -466,17 +466,19 @@ const ManageOutlet = () => {
             {loading ? (
               <tr>
                 <td
-                  colSpan="8"
+                  colSpan="14"
                   className="px-4 py-12 text-center"
                   style={{ color: colors.textSecondary }}
                 >
-                  <Loader size={40} />
+                  <div className="flex justify-center items-center">
+                    <Loader size={40} />
+                  </div>
                 </td>
               </tr>
             ) : outlets.length === 0 ? (
               <tr>
                 <td
-                  colSpan="8"
+                  colSpan="14"
                   className="px-4 py-8 text-center"
                   style={{ color: colors.textSecondary }}
                 >
