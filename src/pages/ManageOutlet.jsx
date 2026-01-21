@@ -395,6 +395,60 @@ const ManageOutlet = () => {
                   borderColor: colors.accent + "30",
                 }}
               >
+                Type Of Ds
+              </th>
+              <th
+                className="px-4 py-3 text-left text-sm font-semibold border-b"
+                style={{
+                  color: colors.text,
+                  borderColor: colors.accent + "30",
+                }}
+              >
+                Employee Mobile
+              </th>
+              <th
+                className="px-4 py-3 text-left text-sm font-semibold border-b"
+                style={{
+                  color: colors.text,
+                  borderColor: colors.accent + "30",
+                }}
+              >
+                Branch
+              </th>
+              <th
+                className="px-4 py-3 text-left text-sm font-semibold border-b"
+                style={{
+                  color: colors.text,
+                  borderColor: colors.accent + "30",
+                }}
+              >
+                Govt District
+              </th>
+              <th
+                className="px-4 py-3 text-left text-sm font-semibold border-b"
+                style={{
+                  color: colors.text,
+                  borderColor: colors.accent + "30",
+                }}
+              >
+                Circle AM
+              </th>
+              <th
+                className="px-4 py-3 text-left text-sm font-semibold border-b"
+                style={{
+                  color: colors.text,
+                  borderColor: colors.accent + "30",
+                }}
+              >
+                Section AE
+              </th>
+              <th
+                className="px-4 py-3 text-left text-sm font-semibold border-b"
+                style={{
+                  color: colors.text,
+                  borderColor: colors.accent + "30",
+                }}
+              >
                 Created At
               </th>
               <th
@@ -487,6 +541,42 @@ const ManageOutlet = () => {
                     style={{ color: colors.text }}
                   >
                     {outlet.createdBy?.WD_Code || "N/A"}
+                  </td>
+                  <td
+                    className="px-4 py-3 text-sm"
+                    style={{ color: colors.text }}
+                  >
+                    {outlet.createdBy?.typeOfDs || "N/A"}
+                  </td>
+                  <td
+                    className="px-4 py-3 text-sm"
+                    style={{ color: colors.text }}
+                  >
+                    {outlet.createdBy?.dsMobile || "N/A"}
+                  </td>
+                  <td
+                    className="px-4 py-3 text-sm"
+                    style={{ color: colors.text }}
+                  >
+                    {outlet.createdBy?.Branch || "N/A"}
+                  </td>
+                  <td
+                    className="px-4 py-3 text-sm"
+                    style={{ color: colors.text }}
+                  >
+                    {outlet.createdBy?.Govt_District || "N/A"}
+                  </td>
+                  <td
+                    className="px-4 py-3 text-sm"
+                    style={{ color: colors.text }}
+                  >
+                    {outlet.createdBy?.Circle_AM || "N/A"}
+                  </td>
+                  <td
+                    className="px-4 py-3 text-sm"
+                    style={{ color: colors.text }}
+                  >
+                    {outlet.createdBy?.Section_AE || "N/A"}
                   </td>
                   <td
                     className="px-4 py-3 text-sm"
