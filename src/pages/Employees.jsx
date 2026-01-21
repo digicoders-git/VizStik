@@ -131,6 +131,7 @@ const Employees = () => {
       const pagination = response.pagination || {};
 
       setEmployees(employeesData);
+      console.log(employees)
       setTotalEmployees(pagination.total || employeesData.length);
       setTotalPages(pagination.totalPages || 1);
     } catch (error) {

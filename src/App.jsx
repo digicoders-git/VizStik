@@ -1,7 +1,5 @@
 import { Route, Routes } from "react-router-dom";
 import { ThemeProvider } from "./context/ThemeContext";
-import { DataProvider } from "./context/DataContext";
-import { WebsiteDataProvider } from "./context/WebsiteDataContext";
 import Dashboard from "./dashboard/Dashboard";
 import Home from "./pages/Home";
 import Login from "./Login";
@@ -14,8 +12,6 @@ const App = () => {
   return (
     <ThemeProvider>
       <ScrollToTop />
-      <DataProvider>
-        <WebsiteDataProvider>
           <>
             <Routes>
               <Route path="/" element={<Login />} />
@@ -30,8 +26,6 @@ const App = () => {
             </Routes>
             <ToastContainer position="top-center" autoClose={1000} hideProgressBar={false} newestOnTop closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover theme="colored" />
           </>
-        </WebsiteDataProvider>
-      </DataProvider>
     </ThemeProvider>
   );
 };

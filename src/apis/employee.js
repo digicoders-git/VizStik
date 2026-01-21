@@ -45,7 +45,7 @@ export const updateEmployee = async (id, employeeData) => {
 };
 
 export const updateEmployeeStatus = async (id, isActive) => {
-  console.log("API call - updating status for employee ID:", id, "=>", isActive);
+  // console.log("API call - updating status for employee ID:", id, "=>", isActive);
 
   try {
     const response = await http.get(`/employee/employee/${id}/status`);
