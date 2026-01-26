@@ -147,7 +147,7 @@ const Home = () => {
           0,
           23,
           59,
-          59
+          59,
         );
 
         const eCount = employees.filter((e) => {
@@ -553,7 +553,11 @@ const Home = () => {
         <div
           className="p-6 rounded border shadow-sm transition-all hover:scale-105 cursor-pointer"
           onClick={() => {
-            const today = new Date().toISOString().split("T")[0];
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, "0");
+            const day = String(now.getDate()).padStart(2, "0");
+            const today = `${year}-${month}-${day}`;
             navigate("/dashboard/outlets", { state: { initialDate: today } });
           }}
           style={{

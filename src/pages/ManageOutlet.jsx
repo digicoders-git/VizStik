@@ -76,6 +76,14 @@ const ManageOutlet = () => {
   };
 
   useEffect(() => {
+    if (location.state?.initialDate) {
+      setFromDate(location.state.initialDate);
+      setToDate(location.state.initialDate);
+      setShowFilters(true);
+    }
+  }, [location.state]);
+
+  useEffect(() => {
     fetchOutlets();
   }, [currentPage, searchTerm, fromDate, toDate]);
 
@@ -103,8 +111,6 @@ const ManageOutlet = () => {
       }
     });
   };
-
-
 
   const handleDownload = async () => {
     try {
@@ -139,6 +145,16 @@ const ManageOutlet = () => {
       day: "2-digit",
       month: "short",
       year: "numeric",
+    });
+  };
+
+  const formatTime = (dateString) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return date.toLocaleTimeString("en-IN", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
     });
   };
 
@@ -452,6 +468,15 @@ const ManageOutlet = () => {
                 Created At
               </th>
               <th
+                className="px-4 py-3 text-left text-sm font-semibold border-b"
+                style={{
+                  color: colors.text,
+                  borderColor: colors.accent + "30",
+                }}
+              >
+                Time
+              </th>
+              <th
                 className="px-4 py-3 text-center text-sm font-semibold border-b"
                 style={{
                   color: colors.text,
@@ -466,7 +491,7 @@ const ManageOutlet = () => {
             {loading ? (
               <tr>
                 <td
-                  colSpan="14"
+                  colSpan="15"
                   className="px-4 py-12 text-center"
                   style={{ color: colors.textSecondary }}
                 >
@@ -478,7 +503,7 @@ const ManageOutlet = () => {
             ) : outlets.length === 0 ? (
               <tr>
                 <td
-                  colSpan="14"
+                  colSpan="15"
                   className="px-4 py-8 text-center"
                   style={{ color: colors.textSecondary }}
                 >
@@ -585,6 +610,12 @@ const ManageOutlet = () => {
                     style={{ color: colors.text }}
                   >
                     {formatDate(outlet.createdAt)}
+                  </td>
+                  <td
+                    className="px-4 py-3 text-sm"
+                    style={{ color: colors.text }}
+                  >
+                    {formatTime(outlet.createdAt)}
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-center gap-2">

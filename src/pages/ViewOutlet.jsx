@@ -24,9 +24,10 @@ const ViewOutlet = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("Overview");
   const [showMapModal, setShowMapModal] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
 
   const tabs = ["Overview", "Employee", "Location", "Images"];
-  console.log(outlet)
+  console.log(outlet);
 
   useEffect(() => {
     const fetchOutlet = async () => {
@@ -266,8 +267,9 @@ const ViewOutlet = () => {
                   {outlet.outletImages.map((image, index) => (
                     <div
                       key={index}
-                      className="rounded overflow-hidden border"
+                      className="rounded overflow-hidden border cursor-pointer hover:opacity-90 transition-opacity"
                       style={{ borderColor: colors.accent + "30" }}
+                      onClick={() => setSelectedImage(image.url)}
                     >
                       <img
                         src={image.url}
@@ -340,6 +342,27 @@ const ViewOutlet = () => {
               ></iframe>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Image Modal */}
+      {selectedImage && (
+        <div
+          className="fixed inset-0 z-100 bg-black bg-opacity-90 flex items-center justify-center p-4"
+          onClick={() => setSelectedImage(null)}
+        >
+          <button
+            className="absolute top-6 right-6 cursor-pointer text-white hover:text-gray-300 transition-colors"
+            onClick={() => setSelectedImage(null)}
+          >
+            <MdClose size={40} />
+          </button>
+          <img
+            src={selectedImage}
+            alt="Full view"
+            className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          />
         </div>
       )}
     </div>
