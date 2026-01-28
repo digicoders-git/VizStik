@@ -117,7 +117,13 @@ const ManageOutlet = () => {
       setDownloading(true);
       const role = localStorage.getItem("admin-role");
       const username = localStorage.getItem("admin-name");
-      const params = {};
+
+      const params = {
+        search: searchTerm,
+        fromDate: fromDate,
+        toDate: toDate,
+      };
+
       if (role === "Branch") {
         params.Branch = username;
       } else if (role === "Circle_AM") {
@@ -125,6 +131,7 @@ const ManageOutlet = () => {
       } else if (role === "Section_AE") {
         params.Section_AE = username;
       }
+
       await downloadOutletsExcel(params);
       toast.success("Excel downloaded successfully");
     } catch (error) {
@@ -393,6 +400,15 @@ const ManageOutlet = () => {
                   borderColor: colors.accent + "30",
                 }}
               >
+                Outlet Name
+              </th>
+              <th
+                className="px-4 py-3 text-left text-sm font-semibold border-b"
+                style={{
+                  color: colors.text,
+                  borderColor: colors.accent + "30",
+                }}
+              >
                 Employee
               </th>
               <th
@@ -556,6 +572,12 @@ const ManageOutlet = () => {
                     style={{ color: colors.text }}
                   >
                     {outlet.outletMobile}
+                  </td>
+                  <td
+                    className="px-4 py-3 text-sm"
+                    style={{ color: colors.text }}
+                  >
+                    {outlet.outletName}
                   </td>
                   <td
                     className="px-4 py-3 text-sm"

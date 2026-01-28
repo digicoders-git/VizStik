@@ -11,6 +11,7 @@ import {
   MdStore,
   MdMap,
   MdClose,
+  MdNearMe,
 } from "react-icons/md";
 import Loader from "../components/ui/Loader";
 import { toast } from "react-toastify";
@@ -170,6 +171,11 @@ const ViewOutlet = () => {
                   label="Outlet Mobile"
                   value={outlet.outletMobile}
                   icon={MdPhone}
+                />
+                <InfoRow
+                  label="Outlet Name"
+                  value={outlet.outletName}
+                  icon={MdNearMe}
                 />
                 <InfoRow
                   label="Created At"

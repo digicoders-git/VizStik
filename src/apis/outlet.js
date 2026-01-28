@@ -46,10 +46,10 @@ export const downloadOutletsExcel = async (params = {}) => {
       responseType: "blob",
     });
 
-    const downloadUrl = window.URL.createObjectURL(new Blob([response.data]));
+    const downloadUrl = window.URL.createObjectURL(response.data);
     const link = document.createElement("a");
     link.href = downloadUrl;
-    link.setAttribute("download", "Outlets_Data.xlsx");
+    link.setAttribute("download", `Outlets_Data_${new Date().getTime()}.xlsx`);
     document.body.appendChild(link);
     link.click();
 
