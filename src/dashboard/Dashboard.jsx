@@ -141,7 +141,7 @@ const Dashboard = () => {
         }}
       >
         <div
-          className="p-4 flex items-center justify-center border-b h-15"
+          className="p-4 flex items-center justify-center border-b h-[60.5px]"
           style={{ borderColor: colors.accent + "30" }}
         >
           {sidebarOpen ? (
