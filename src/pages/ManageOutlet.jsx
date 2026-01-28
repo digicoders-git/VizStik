@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useTheme } from "../context/ThemeContext";
-import { getOutlets, deleteOutlet, downloadOutletsExcel } from "../apis/outlet";
+import {
+  getOutlets,
+  deleteOutlet,
+  downloadOutletsExcel,
+  downloadOutletsImagesZip,
+} from "../apis/outlet";
 import {
   MdSearch,
   MdDelete,
@@ -11,6 +16,7 @@ import {
   MdMap,
   MdDownload,
   MdClose,
+  MdImage,
 } from "react-icons/md";
 import { useNavigate, useLocation } from "react-router-dom";
 import Swal from "sweetalert2";
@@ -26,6 +32,7 @@ const ManageOutlet = () => {
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState(null);
   const [downloading, setDownloading] = useState(false);
+  const [downloadingImages, setDownloadingImages] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
@@ -141,6 +148,35 @@ const ManageOutlet = () => {
     }
   };
 
+  const handleDownloadImages = async () => {
+    try {
+      setDownloadingImages(true);
+      const role = localStorage.getItem("admin-role");
+      const username = localStorage.getItem("admin-name");
+
+      const params = {
+        search: searchTerm,
+        fromDate: fromDate,
+        toDate: toDate,
+      };
+
+      if (role === "Branch") {
+        params.Branch = username;
+      } else if (role === "Circle_AM") {
+        params.Circle_AM = username;
+      } else if (role === "Section_AE") {
+        params.Section_AE = username;
+      }
+
+      await downloadOutletsImagesZip(params);
+      toast.success("Images zip downloaded successfully");
+    } catch (error) {
+      toast.error(error.message || "Failed to download images zip");
+    } finally {
+      setDownloadingImages(false);
+    }
+  };
+
   const handleView = (id) => {
     navigate(`/dashboard/outlets/view/${id}`);
   };
@@ -207,6 +243,23 @@ const ManageOutlet = () => {
               <MdDownload size={20} />
             )}
             <span>Download Excel</span>
+          </button>
+          <button
+            onClick={handleDownloadImages}
+            disabled={downloadingImages}
+            className="flex items-center cursor-pointer gap-2 px-4 py-2.5 rounded transition-all hover:opacity-90 shadow-sm border"
+            style={{
+              backgroundColor: colors.primary + "10",
+              color: colors.primary,
+              borderColor: colors.primary,
+            }}
+          >
+            {downloadingImages ? (
+              <Loader size={20} color={colors.primary} />
+            ) : (
+              <MdImage size={20} />
+            )}
+            <span>Download Images</span>
           </button>
           <button
             onClick={() => navigate("/dashboard/outlets/map")}
