@@ -18,9 +18,7 @@ export const getOutlets = async (params = {}) => {
 
 // Get outlet by ID
 export const getOutletById = async (id) => {
-  const response = await http.get(`/outlets/admin/all?_id=${id}`); // Assuming it supports filtering by ID as well, or there might be a specific endpoint. 
-  // Based on the user's description, I'll use the filter for now if there's no specific GET by ID provided.
-  // Actually, I'll look for an outlet by ID endpoint in the backend if I can.
+  const response = await http.get(`/outlets/single/${id}`);
   return response.data;
 };
 

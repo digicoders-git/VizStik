@@ -16,6 +16,11 @@ export const getEmployees = async (params = {}) => {
   return response.data;
 };
 
+export const getEmployeeById = async (id) => {
+  const response = await http.get(`/employee/get/${id}`);
+  return response.data;
+};
+
 export const createEmployee = async (employeeData) => {
   const formData = new FormData();
   Object.keys(employeeData).forEach(key => {

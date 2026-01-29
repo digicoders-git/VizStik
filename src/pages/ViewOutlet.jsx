@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
-import { getOutlets } from "../apis/outlet";
+import { getOutletById } from "../apis/outlet";
 import {
   MdArrowBack,
   MdLocationOn,
@@ -28,20 +28,16 @@ const ViewOutlet = () => {
   const [selectedImage, setSelectedImage] = useState(null);
 
   const tabs = ["Overview", "Employee", "Location", "Images"];
-  console.log(outlet);
+  // console.log(outlet);
 
   useEffect(() => {
     const fetchOutlet = async () => {
       try {
         setLoading(true);
-        // Using getOutlets to find the specific outlet by ID
-        const response = await getOutlets({ limit: 1 }); // We don't have a direct single outlet admin API yet, so we'll fetch all and find it, or use search if possible.
-        // Actually, let's just fetch everything and find it for now as a workaround, or better yet, assume getOutlets can take search params
-        const data = await getOutlets({});
-        const found = data.data.find((o) => o._id === id);
+        const response = await getOutletById(id);
 
-        if (found) {
-          setOutlet(found);
+        if (response.success) {
+          setOutlet(response.data);
         } else {
           toast.error("Outlet not found");
           navigate("/dashboard/outlets");

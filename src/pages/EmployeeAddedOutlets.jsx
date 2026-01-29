@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useTheme } from "../context/ThemeContext";
-import { getEmployees } from "../apis/employee";
+import { getEmployeeById } from "../apis/employee";
 import { downloadOutletsExcel } from "../apis/outlet";
 import { toast } from "react-toastify";
 import { useNavigate, useParams } from "react-router-dom";
@@ -26,7 +26,17 @@ const EmployeeAddedOutlets = () => {
   const [downloading, setDownloading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedImage, setSelectedImage] = useState(null);
-  const itemsPerPage = 5;
+  const itemsPerPage = 10;
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
 
   useEffect(() => {
     fetchEmployee();
@@ -35,11 +45,9 @@ const EmployeeAddedOutlets = () => {
   const fetchEmployee = async () => {
     try {
       setLoading(true);
-      const response = await getEmployees();
-      const employeesData = response.data || [];
-      const emp = employeesData.find((emp) => emp._id == id);
-      if (emp) {
-        setEmployee(emp);
+      const response = await getEmployeeById(id);
+      if (response) {
+        setEmployee(response);
       } else {
         toast.error("Employee not found");
         navigate("/dashboard/employees");
@@ -210,14 +218,21 @@ const EmployeeAddedOutlets = () => {
                 >
                   Added On
                 </th>
+                <th
+                  className="px-6 py-3 text-center text-sm font-medium"
+                  style={{ color: colors.text }}
+                >
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody>
               {outlets.length > 0 ? (
-                outlets
+                [...outlets]
+                  .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
                   .slice(
                     (currentPage - 1) * itemsPerPage,
-                    currentPage * itemsPerPage
+                    currentPage * itemsPerPage,
                   )
                   .map((outlet, index) => (
                     <tr
@@ -242,7 +257,9 @@ const EmployeeAddedOutlets = () => {
                             />
                           </div>
                           <div>
-                            <div className="font-medium">{outlet.activity}</div>
+                            <div className="font-medium">
+                              {outlet.activity || "N/A"}
+                            </div>
                           </div>
                         </div>
                       </td>
@@ -273,7 +290,7 @@ const EmployeeAddedOutlets = () => {
                         className="px-6 py-4 text-sm"
                         style={{ color: colors.text }}
                       >
-                        {outlet.outletMobile}
+                        {outlet.outletMobile || "N/A"}
                       </td>
                       <td
                         className="px-6 py-4 text-sm"
@@ -281,8 +298,8 @@ const EmployeeAddedOutlets = () => {
                       >
                         <div className="flex items-center gap-1">
                           <MdLocationOn size={16} className="opacity-50" />
-                          {outlet.location?.latitude},{" "}
-                          {outlet.location?.longitude}
+                          {outlet.location?.latitude || "?"},{" "}
+                          {outlet.location?.longitude || "?"}
                         </div>
                       </td>
                       <td
@@ -295,14 +312,30 @@ const EmployeeAddedOutlets = () => {
                         className="px-6 py-4 text-sm"
                         style={{ color: colors.text }}
                       >
-                        {new Date(outlet.createdAt).toLocaleDateString()}
+                        {formatDate(outlet.createdAt)}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex justify-center">
+                          <button
+                            onClick={() =>
+                              navigate(`/dashboard/outlets/view/${outlet._id}`)
+                            }
+                            className="px-3 py-1.5 rounded text-xs font-medium cursor-pointer transition-all hover:opacity-90"
+                            style={{
+                              backgroundColor: colors.primary,
+                              color: colors.background,
+                            }}
+                          >
+                            View
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
               ) : (
                 <tr>
                   <td
-                    colSpan="6"
+                    colSpan="7"
                     className="px-6 py-8 text-center"
                     style={{ color: colors.textSecondary }}
                   >
@@ -340,7 +373,7 @@ const EmployeeAddedOutlets = () => {
             <div className="flex gap-1">
               {Array.from(
                 { length: Math.ceil(outlets.length / itemsPerPage) },
-                (_, i) => i + 1
+                (_, i) => i + 1,
               )
                 .filter((page) => {
                   const totalPages = Math.ceil(outlets.length / itemsPerPage);
@@ -383,7 +416,7 @@ const EmployeeAddedOutlets = () => {
             <button
               onClick={() =>
                 setCurrentPage((prev) =>
-                  Math.min(prev + 1, Math.ceil(outlets.length / itemsPerPage))
+                  Math.min(prev + 1, Math.ceil(outlets.length / itemsPerPage)),
                 )
               }
               disabled={

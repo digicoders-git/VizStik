@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useTheme } from "../context/ThemeContext";
-import { getEmployees } from "../apis/employee";
+import { getEmployeeById } from "../apis/employee";
 import { toast } from "react-toastify";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -31,11 +31,9 @@ const ViewEmployee = () => {
 
   const fetchEmployee = async () => {
     try {
-      const response = await getEmployees();
-      const employeesData = response.data || [];
-      const emp = employeesData.find((emp) => emp._id == id);
-      if (emp) {
-        setEmployee(emp);
+      const response = await getEmployeeById(id);
+      if (response) {
+        setEmployee(response);
       } else {
         toast.error("Employee not found");
         navigate("/dashboard/employees");
@@ -45,7 +43,7 @@ const ViewEmployee = () => {
         toast.error(
           error.response.data.message ||
             error.response.data.error ||
-            "Failed to fetch employee data"
+            "Failed to fetch employee data",
         );
       } else {
         toast.error("Failed to fetch employee data");
