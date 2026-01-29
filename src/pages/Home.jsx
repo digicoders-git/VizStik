@@ -10,9 +10,7 @@ import {
   MdPerson,
   MdToday,
 } from "react-icons/md";
-import { getEmployees } from "../apis/employee";
-import { getOutlets } from "../apis/outlet";
-import { getPrefieldsAdmin } from "../apis/prefield";
+import { getAdminDashboardStats } from "../apis/outlet";
 import { MdTableChart } from "react-icons/md";
 import Loader from "../components/ui/Loader";
 
@@ -21,13 +19,8 @@ const Home = () => {
   const navigate = useNavigate();
   const [filter, setFilter] = useState("Day"); // Day, Week, Month, Year
   const [loading, setLoading] = useState(true);
-  const [data, setData] = useState({
-    employees: [],
-    outlets: [],
-    prefields: [],
-  });
 
-  // Stats state (Filtered)
+  // Stats state (Server-side)
   const [stats, setStats] = useState({
     totalEmployees: 0,
     totalOutlets: 0,
@@ -37,7 +30,7 @@ const Home = () => {
     todayAddedOutlets: 0,
   });
 
-  // Graph Data State (Filtered)
+  // Graph Data State (Server-side)
   const [chartData, setChartData] = useState({
     categories: [],
     series: { employees: [], outlets: [] },
@@ -53,199 +46,15 @@ const Home = () => {
     return "Good Evening";
   };
 
-  // Helper: Get Date Range and Labels based on Filter
-  const processFilteredData = (employees, outlets, prefields, filterType) => {
-    const now = new Date();
-    const todayStart = new Date(now);
-    todayStart.setHours(0, 0, 0, 0);
-    const todayEnd = new Date(now);
-    todayEnd.setHours(23, 59, 59, 999);
-
-    let categories = [];
-    let empCounts = [];
-    let outletCounts = [];
-
-    // Dataset for Pie/Column charts (items in range)
-    let filteredEmp = [];
-    let filteredOutlets = [];
-
-    if (filterType === "Day") {
-      // Last 7 Days
-      for (let i = 6; i >= 0; i--) {
-        const d = new Date(now);
-        d.setDate(d.getDate() - i);
-        categories.push(d.toLocaleDateString("en-US", { weekday: "short" }));
-
-        const dayStart = new Date(d.setHours(0, 0, 0, 0));
-        const dayEnd = new Date(d.setHours(23, 59, 59, 999));
-
-        const eCount = employees.filter((e) => {
-          const c = new Date(e.createdAt);
-          return c >= dayStart && c <= dayEnd;
-        });
-        const oCount = outlets.filter((s) => {
-          const c = new Date(s.createdAt);
-          return c >= dayStart && c <= dayEnd;
-        });
-
-        empCounts.push(eCount.length);
-        outletCounts.push(oCount.length);
-        filteredEmp = [...filteredEmp, ...eCount];
-        filteredOutlets = [...filteredOutlets, ...oCount];
-      }
-    } else if (filterType === "Week") {
-      // Last 4 Weeks
-      for (let i = 3; i >= 0; i--) {
-        categories.push(`Week ${4 - i}`);
-        // Simple approximation: 1 week chunks backwards from now
-        const weekStart = new Date(now);
-        weekStart.setDate(weekStart.getDate() - i * 7 - 6);
-        weekStart.setHours(0, 0, 0, 0);
-
-        const weekEnd = new Date(weekStart);
-        weekEnd.setDate(weekEnd.getDate() + 6);
-        weekEnd.setHours(23, 59, 59, 999);
-
-        const eCount = employees.filter((e) => {
-          const c = new Date(e.createdAt);
-          return c >= weekStart && c <= weekEnd;
-        });
-        const oCount = outlets.filter((s) => {
-          const c = new Date(s.createdAt);
-          return c >= weekStart && c <= weekEnd;
-        });
-
-        empCounts.push(eCount.length);
-        outletCounts.push(oCount.length);
-        filteredEmp = [...filteredEmp, ...eCount];
-        filteredOutlets = [...filteredOutlets, ...oCount];
-      }
-    } else if (filterType === "Month") {
-      // Last 12 Months
-      const monthNames = [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
-      ];
-      for (let i = 11; i >= 0; i--) {
-        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-        categories.push(monthNames[d.getMonth()]);
-
-        const monthStart = new Date(d.getFullYear(), d.getMonth(), 1);
-        const monthEnd = new Date(
-          d.getFullYear(),
-          d.getMonth() + 1,
-          0,
-          23,
-          59,
-          59,
-        );
-
-        const eCount = employees.filter((e) => {
-          const c = new Date(e.createdAt);
-          return c >= monthStart && c <= monthEnd;
-        });
-        const oCount = outlets.filter((s) => {
-          const c = new Date(s.createdAt);
-          return c >= monthStart && c <= monthEnd;
-        });
-
-        empCounts.push(eCount.length);
-        outletCounts.push(oCount.length);
-        filteredEmp = [...filteredEmp, ...eCount];
-        filteredOutlets = [...filteredOutlets, ...oCount];
-      }
-    } else {
-      // Year (Default - Current Year Monthly) - Same as Month logic basically but strictly current year
-      const monthNames = [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
-      ];
-      const currentYear = now.getFullYear();
-      categories = monthNames;
-
-      for (let i = 0; i < 12; i++) {
-        const monthStart = new Date(currentYear, i, 1);
-        const monthEnd = new Date(currentYear, i + 1, 0, 23, 59, 59);
-
-        const eCount = employees.filter((e) => {
-          const c = new Date(e.createdAt);
-          return c >= monthStart && c <= monthEnd;
-        });
-        const oCount = outlets.filter((s) => {
-          const c = new Date(s.createdAt);
-          return c >= monthStart && c <= monthEnd;
-        });
-
-        empCounts.push(eCount.length);
-        outletCounts.push(oCount.length);
-        filteredEmp = [...filteredEmp, ...eCount];
-        filteredOutlets = [...filteredOutlets, ...oCount];
-      }
-    }
-
-    // Pie Chart Data (Employee Status)
-    const activeEmployeesCount = filteredEmp.filter((e) => e.isActive).length;
-    const inactiveEmployeesCount = filteredEmp.length - activeEmployeesCount;
-
-    const todayAddedOutletsCount = outlets.filter((s) => {
-      const c = new Date(s.createdAt);
-      return c >= todayStart && c <= todayEnd;
-    }).length;
-
-    setStats({
-      totalEmployees: employees.length,
-      totalOutlets: outlets.length,
-      totalPrefields: prefields.length,
-      todayAddedOutlets: todayAddedOutletsCount,
-      activeEmployees: activeEmployeesCount,
-      inactiveEmployees: inactiveEmployeesCount,
-    });
-
-    setChartData({
-      categories,
-      series: { employees: empCounts, outlets: outletCounts },
-      filteredCounts: {
-        employees: filteredEmp.length,
-        outlets: filteredOutlets.length,
-      },
-      employeeStatus: {
-        active: activeEmployeesCount,
-        inactive: inactiveEmployeesCount,
-      },
-    });
-  };
-
-  // Fetch data
+  // Fetch data from server
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchDashboardData = async () => {
       try {
         setLoading(true);
         const role = localStorage.getItem("admin-role");
         const username = localStorage.getItem("admin-name");
 
-        let params = {
-          limit: 1000000, // Fetch more data for correct stats and graphs
-        };
+        let params = { filter };
         if (role === "Branch") {
           params.Branch = username;
         } else if (role === "Circle_AM") {
@@ -254,36 +63,11 @@ const Home = () => {
           params.Section_AE = username;
         }
 
-        const promises = [getOutlets(params)];
-        if (["admin", "Branch", "Circle_AM", "Section_AE"].includes(role)) {
-          promises.push(getEmployees(params));
-          promises.push(getPrefieldsAdmin(params));
+        const response = await getAdminDashboardStats(params);
+        if (response.success) {
+          setStats(response.stats);
+          setChartData(response.chartData);
         }
-
-        const results = await Promise.all(promises);
-        const outletsData = results[0];
-        const employeesData = [
-          "admin",
-          "Branch",
-          "Circle_AM",
-          "Section_AE",
-        ].includes(role)
-          ? results[1]
-          : { data: [] };
-        const prefieldsData = [
-          "admin",
-          "Branch",
-          "Circle_AM",
-          "Section_AE",
-        ].includes(role)
-          ? results[2]
-          : { data: [] };
-
-        const outlets = outletsData.data || [];
-        const employees = employeesData.data || [];
-        const prefields = prefieldsData.data || [];
-
-        setData({ employees, outlets, prefields });
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
       } finally {
@@ -291,15 +75,8 @@ const Home = () => {
       }
     };
 
-    fetchData();
-  }, []);
-
-  // Update charts when filter changes
-  useEffect(() => {
-    if (data.employees.length || data.outlets.length || data.prefields.length) {
-      processFilteredData(data.employees, data.outlets, data.prefields, filter);
-    }
-  }, [filter, data]);
+    fetchDashboardData();
+  }, [filter]);
 
   // Growth Line Chart
   const lineChartOptions = {
@@ -436,15 +213,35 @@ const Home = () => {
     ],
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-full p-10">
-        <Loader size={60} />
-      </div>
-    );
-  }
-
   const role = localStorage.getItem("admin-role");
+
+  const StatCard = ({ title, value, icon: Icon, color, onClick, bgColor }) => (
+    <div
+      className="p-6 rounded border shadow-sm transition-all hover:scale-105 cursor-pointer relative overflow-hidden"
+      onClick={onClick}
+      style={{
+        backgroundColor: colors.background,
+        borderColor: colors.accent + "30",
+      }}
+    >
+      {loading && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-transparent">
+          <Loader size={24} />
+        </div>
+      )}
+      <div className="flex items-center justify-between mb-4">
+        <div className="p-3 rounded" style={{ backgroundColor: bgColor }}>
+          <Icon size={24} style={{ color: color }} />
+        </div>
+      </div>
+      <h3 className="text-3xl font-bold mb-1" style={{ color: colors.text }}>
+        {loading ? "..." : value}
+      </h3>
+      <p className="text-sm" style={{ color: colors.textSecondary }}>
+        {title}
+      </p>
+    </div>
+  );
 
   return (
     <div className="p-6 space-y-8">
@@ -461,97 +258,36 @@ const Home = () => {
             Overview of your VizStik performance.
           </p>
         </div>
-
-        {/* Global Filter */}
-        <div
-          className="flex items-center bg-gray-100/10 p-1 rounded border"
-          style={{
-            borderColor: colors.accent + "30",
-            backgroundColor: colors.accent + "10",
-          }}
-        >
-          {["Day", "Week", "Month", "Year"].map((item) => (
-            <button
-              key={item}
-              onClick={() => setFilter(item)}
-              className={`px-4 cursor-pointer py-1.5 rounded text-sm font-medium transition-all ${
-                filter === item ? "shadow-sm" : "hover:bg-black/5"
-              }`}
-              style={{
-                backgroundColor:
-                  filter === item ? colors.background : "transparent",
-                color: filter === item ? colors.primary : colors.textSecondary,
-              }}
-            >
-              {item}
-            </button>
-          ))}
-        </div>
       </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-        {/* Total Employees - Only for Admin/Branch/Circle_AM/Section_AE */}
         {["admin", "Branch", "Circle_AM", "Section_AE"].includes(role) && (
-          <div
-            className="p-6 rounded border shadow-sm transition-all hover:scale-105 cursor-pointer"
+          <StatCard
+            title="Total Employees"
+            value={stats.totalEmployees}
+            icon={MdPeople}
+            color={colors.primary}
+            bgColor={colors.primary + "20"}
             onClick={() => navigate("/dashboard/employees")}
-            style={{
-              backgroundColor: colors.background,
-              borderColor: colors.accent + "30",
-            }}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <div
-                className="p-3 rounded"
-                style={{ backgroundColor: colors.primary + "20" }}
-              >
-                <MdPeople size={24} style={{ color: colors.primary }} />
-              </div>
-            </div>
-            <h3
-              className="text-3xl font-bold mb-1"
-              style={{ color: colors.text }}
-            >
-              {stats.totalEmployees}
-            </h3>
-            <p className="text-sm" style={{ color: colors.textSecondary }}>
-              Total Employees
-            </p>
-          </div>
+          />
         )}
 
-        {/* Total Outlets */}
-        <div
-          className="p-6 rounded border shadow-sm transition-all hover:scale-105 cursor-pointer"
+        <StatCard
+          title="Total Outlets"
+          value={stats.totalOutlets}
+          icon={MdStorefront}
+          color="#f59e0b"
+          bgColor="#f59e0b20"
           onClick={() => navigate("/dashboard/outlets")}
-          style={{
-            backgroundColor: colors.background,
-            borderColor: colors.accent + "30",
-          }}
-        >
-          <div className="flex items-center justify-between mb-4">
-            <div
-              className="p-3 rounded"
-              style={{ backgroundColor: "#f59e0b20" }}
-            >
-              <MdStorefront size={24} style={{ color: "#f59e0b" }} />
-            </div>
-          </div>
-          <h3
-            className="text-3xl font-bold mb-1"
-            style={{ color: colors.text }}
-          >
-            {stats.totalOutlets}
-          </h3>
-          <p className="text-sm" style={{ color: colors.textSecondary }}>
-            Total Outlets
-          </p>
-        </div>
+        />
 
-        {/* Today Added Outlets */}
-        <div
-          className="p-6 rounded border shadow-sm transition-all hover:scale-105 cursor-pointer"
+        <StatCard
+          title="Today Added Outlets"
+          value={stats.todayAddedOutlets}
+          icon={MdToday}
+          color="#8b5cf6"
+          bgColor="#8b5cf620"
           onClick={() => {
             const now = new Date();
             const year = now.getFullYear();
@@ -560,123 +296,45 @@ const Home = () => {
             const today = `${year}-${month}-${day}`;
             navigate("/dashboard/outlets", { state: { initialDate: today } });
           }}
-          style={{
-            backgroundColor: colors.background,
-            borderColor: colors.accent + "30",
-          }}
-        >
-          <div className="flex items-center justify-between mb-4">
-            <div
-              className="p-3 rounded"
-              style={{ backgroundColor: "#8b5cf620" }}
-            >
-              <MdToday size={24} style={{ color: "#8b5cf6" }} />
-            </div>
-          </div>
-          <h3
-            className="text-3xl font-bold mb-1"
-            style={{ color: colors.text }}
-          >
-            {stats.todayAddedOutlets}
-          </h3>
-          <p className="text-sm" style={{ color: colors.textSecondary }}>
-            Today Added Outlets
-          </p>
-        </div>
-        {/* Total Master Data */}
-        <div
-          className="p-6 rounded border shadow-sm transition-all hover:scale-105 cursor-pointer"
-          onClick={() => navigate("/dashboard/master-data")}
-          style={{
-            backgroundColor: colors.background,
-            borderColor: colors.accent + "30",
-          }}
-        >
-          <div className="flex items-center justify-between mb-4">
-            <div
-              className="p-3 rounded"
-              style={{ backgroundColor: colors.secondary + "20" }}
-            >
-              <MdTableChart size={24} style={{ color: colors.secondary }} />
-            </div>
-          </div>
-          <h3
-            className="text-3xl font-bold mb-1"
-            style={{ color: colors.text }}
-          >
-            {stats.totalPrefields}
-          </h3>
-          <p className="text-sm" style={{ color: colors.textSecondary }}>
-            Total Master Data
-          </p>
-        </div>
+        />
 
-        {/* Active Employees - Only for Admin/Branch/Circle_AM/Section_AE */}
-        {["admin", "Branch", "Circle_AM", "Section_AE"].includes(role) && (
-          <div
-            className="p-6 rounded border shadow-sm transition-all hover:scale-105 cursor-pointer"
+        <StatCard
+          title="Total Master Data"
+          value={stats.totalPrefields}
+          icon={MdTableChart}
+          color={colors.secondary}
+          bgColor={colors.secondary + "20"}
+          onClick={() => navigate("/dashboard/master-data")}
+        />
+
+        {/* {["admin", "Branch", "Circle_AM", "Section_AE"].includes(role) && (
+          <StatCard
+            title="Active Employees"
+            value={stats.activeEmployees}
+            icon={MdPerson}
+            color="#22c55e"
+            bgColor="#22c55e20"
             onClick={() =>
               navigate("/dashboard/employees", {
                 state: { initialStatus: "true" },
               })
             }
-            style={{
-              backgroundColor: colors.background,
-              borderColor: colors.accent + "30",
-            }}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <div
-                className="p-3 rounded"
-                style={{ backgroundColor: "#22c55e20" }}
-              >
-                <MdPerson size={24} style={{ color: "#22c55e" }} />
-              </div>
-            </div>
-            <h3
-              className="text-3xl font-bold mb-1"
-              style={{ color: colors.text }}
-            >
-              {stats.activeEmployees}
-            </h3>
-            <p className="text-sm" style={{ color: colors.textSecondary }}>
-              Active Employees
-            </p>
-          </div>
-        )}
+          />
+        )} */}
 
-        {/* Inactive Employees - Only for Admin/Branch/Circle_AM/Section_AE */}
         {["admin", "Branch", "Circle_AM", "Section_AE"].includes(role) && (
-          <div
-            className="p-6 rounded border shadow-sm transition-all hover:scale-105 cursor-pointer"
+          <StatCard
+            title="Inactive Employees"
+            value={stats.inactiveEmployees}
+            icon={MdPerson}
+            color="#ef4444"
+            bgColor="#ef444420"
             onClick={() =>
               navigate("/dashboard/employees", {
                 state: { initialStatus: "false" },
               })
             }
-            style={{
-              backgroundColor: colors.background,
-              borderColor: colors.accent + "30",
-            }}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <div
-                className="p-3 rounded"
-                style={{ backgroundColor: "#ef444420" }}
-              >
-                <MdPerson size={24} style={{ color: "#ef4444" }} />
-              </div>
-            </div>
-            <h3
-              className="text-3xl font-bold mb-1"
-              style={{ color: colors.text }}
-            >
-              {stats.inactiveEmployees}
-            </h3>
-            <p className="text-sm" style={{ color: colors.textSecondary }}>
-              Inactive Employees
-            </p>
-          </div>
+          />
         )}
       </div>
 
@@ -684,13 +342,65 @@ const Home = () => {
       <div className="flex flex-col gap-6">
         {/* Growth Line Chart (Full Width) */}
         <div
-          className="p-6 rounded border shadow-sm"
+          className="p-6 rounded border shadow-sm relative min-h-[400px]"
           style={{
             backgroundColor: colors.background,
             borderColor: colors.accent + "30",
           }}
         >
-          <HighchartsReact highcharts={Highcharts} options={lineChartOptions} />
+          {loading && (
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-transparent rounded">
+              <Loader size={40} />
+            </div>
+          )}
+
+          {/* Chart Header with Filter */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+            <div>
+              <h2 className="text-xl font-bold" style={{ color: colors.text }}>
+                Growth Overview
+              </h2>
+              <p className="text-sm" style={{ color: colors.textSecondary }}>
+                New additions over time
+              </p>
+            </div>
+
+            {/* Global Filter Buttons - Moved Here */}
+            <div
+              className="flex items-center bg-gray-100/10 p-1 rounded border self-start md:self-center"
+              style={{
+                borderColor: colors.accent + "30",
+                backgroundColor: colors.accent + "10",
+              }}
+            >
+              {["Day", "Week", "Month", "Year"].map((item) => (
+                <button
+                  key={item}
+                  onClick={() => setFilter(item)}
+                  className={`px-4 cursor-pointer py-1.5 rounded text-sm font-medium transition-all ${
+                    filter === item ? "shadow-sm" : "hover:bg-black/5"
+                  }`}
+                  style={{
+                    backgroundColor:
+                      filter === item ? colors.background : "transparent",
+                    color:
+                      filter === item ? colors.primary : colors.textSecondary,
+                  }}
+                >
+                  {item}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <HighchartsReact
+            highcharts={Highcharts}
+            options={{
+              ...lineChartOptions,
+              title: { text: null }, // Handled by our custom header
+              subtitle: { text: null },
+            }}
+          />
         </div>
 
         {/* Bottom Split Charts */}
@@ -698,12 +408,17 @@ const Home = () => {
           {/* Employee Status Chart - Only for Admin */}
           {role === "admin" && (
             <div
-              className="p-6 rounded border shadow-sm"
+              className="p-6 rounded border shadow-sm relative min-h-[350px]"
               style={{
                 backgroundColor: colors.background,
                 borderColor: colors.accent + "30",
               }}
             >
+              {loading && (
+                <div className="absolute inset-0 z-10 flex items-center justify-center bg-transparent rounded">
+                  <Loader size={30} />
+                </div>
+              )}
               <HighchartsReact
                 highcharts={Highcharts}
                 options={employeeStatusChartOptions}
@@ -713,12 +428,17 @@ const Home = () => {
 
           {/* Overview Chart */}
           <div
-            className="p-6 rounded border shadow-sm"
+            className="p-6 rounded border shadow-sm relative min-h-[350px]"
             style={{
               backgroundColor: colors.background,
               borderColor: colors.accent + "30",
             }}
           >
+            {loading && (
+              <div className="absolute inset-0 z-10 flex items-center justify-center bg-transparent rounded">
+                <Loader size={30} />
+              </div>
+            )}
             <HighchartsReact
               highcharts={Highcharts}
               options={overviewChartOptions}

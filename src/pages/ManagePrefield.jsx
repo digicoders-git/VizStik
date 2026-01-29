@@ -1,21 +1,38 @@
 import React, { useState, useEffect } from "react";
 import { useTheme } from "../context/ThemeContext";
 import { getPrefieldsAdmin, downloadPrefieldsExcel } from "../apis/prefield";
+import { getOutletFilters } from "../apis/outlet";
 import {
   MdSearch,
   MdChevronLeft,
   MdChevronRight,
   MdDownload,
+  MdFilterList,
 } from "react-icons/md";
 import Loader from "../components/ui/Loader";
 import { toast } from "react-toastify";
+import ModernSelect from "../components/ModernSelect";
+import useDebounce from "../hooks/useDebounce";
 
 const ManagePrefield = () => {
   const { colors } = useTheme();
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
+
+  // Search, Filter, Pagination states
   const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearch = useDebounce(searchTerm, 500);
+  const [selectedBranch, setSelectedBranch] = useState("");
+  const [selectedCircleAM, setSelectedCircleAM] = useState("");
+  const [selectedSectionAE, setSelectedSectionAE] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
+
+  const [filterOptions, setFilterOptions] = useState({
+    branches: [],
+    circleAMs: [],
+    sectionAEs: [],
+  });
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -23,38 +40,70 @@ const ManagePrefield = () => {
   const [limit] = useState(25);
   const [totalItems, setTotalItems] = useState(0);
 
+  const role = localStorage.getItem("admin-role");
+  const adminName = localStorage.getItem("admin-name");
+
+  // Initial Filter Options
+  useEffect(() => {
+    const fetchAllFilters = async () => {
+      try {
+        const response = await getOutletFilters();
+        if (response.success) {
+          setFilterOptions({
+            branches: response.branches || [],
+            circleAMs: response.circleAMs || [],
+            sectionAEs: response.sectionAEs || [],
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching filters:", error);
+      }
+    };
+    fetchAllFilters();
+  }, []);
+
+  // Cascading Filters Logic
+  useEffect(() => {
+    const fetchDependentFilters = async () => {
+      try {
+        const response = await getOutletFilters({
+          Branch: selectedBranch,
+          Circle_AM: selectedCircleAM,
+        });
+        if (response.success) {
+          setFilterOptions((prev) => ({
+            ...prev,
+            circleAMs: response.circleAMs || [],
+            sectionAEs: response.sectionAEs || [],
+          }));
+        }
+      } catch (error) {
+        console.error("Error fetching dependent filters:", error);
+      }
+    };
+    if (selectedBranch || selectedCircleAM) {
+      fetchDependentFilters();
+    }
+  }, [selectedBranch, selectedCircleAM]);
+
   const fetchPrefields = async () => {
     try {
       setLoading(true);
-      const role = localStorage.getItem("admin-role");
-      const username = localStorage.getItem("admin-name");
-
-      // DEBUG LOGS
-      console.log("=== FRONTEND PREFIELD FETCH ===");
-      console.log("Role:", role);
-      console.log("Username:", username);
-
       const params = {
         page: currentPage,
         limit: limit,
-        search: searchTerm,
+        search: debouncedSearch,
+        Branch: selectedBranch,
+        Circle_AM: selectedCircleAM,
+        Section_AE: selectedSectionAE,
       };
 
-      if (role === "Branch") {
-        params.Branch = username;
-      } else if (role === "Circle_AM") {
-        params.Circle_AM = username;
-      } else if (role === "Section_AE") {
-        params.Section_AE = username;
-      }
-
-      console.log("API Params:", params);
-      console.log("===============================\n");
+      // Role based restrictions
+      if (role === "Branch") params.Branch = adminName;
+      if (role === "Circle_AM") params.Circle_AM = adminName;
+      if (role === "Section_AE") params.Section_AE = adminName;
 
       const response = await getPrefieldsAdmin(params);
-
-      console.log("API Response:", response);
-
       if (response.success) {
         setData(response.data || []);
         setTotalItems(response.pagination?.total || 0);
@@ -70,21 +119,28 @@ const ManagePrefield = () => {
 
   useEffect(() => {
     fetchPrefields();
-  }, [currentPage, searchTerm]);
+  }, [
+    currentPage,
+    debouncedSearch,
+    selectedBranch,
+    selectedCircleAM,
+    selectedSectionAE,
+  ]);
 
   const handleDownload = async () => {
     try {
       setDownloading(true);
-      const role = localStorage.getItem("admin-role");
-      const username = localStorage.getItem("admin-name");
-      const params = {};
-      if (role === "Branch") {
-        params.Branch = username;
-      } else if (role === "Circle_AM") {
-        params.Circle_AM = username;
-      } else if (role === "Section_AE") {
-        params.Section_AE = username;
-      }
+      const params = {
+        search: debouncedSearch,
+        Branch: selectedBranch,
+        Circle_AM: selectedCircleAM,
+        Section_AE: selectedSectionAE,
+      };
+
+      if (role === "Branch") params.Branch = adminName;
+      if (role === "Circle_AM") params.Circle_AM = adminName;
+      if (role === "Section_AE") params.Section_AE = adminName;
+
       await downloadPrefieldsExcel(params);
       toast.success("Excel downloaded successfully");
     } catch (error) {
@@ -92,6 +148,14 @@ const ManagePrefield = () => {
     } finally {
       setDownloading(false);
     }
+  };
+
+  const clearFilters = () => {
+    setSearchTerm("");
+    setSelectedBranch("");
+    setSelectedCircleAM("");
+    setSelectedSectionAE("");
+    setCurrentPage(1);
   };
 
   return (
@@ -102,7 +166,7 @@ const ManagePrefield = () => {
             className="text-2xl md:text-3xl font-bold mb-2"
             style={{ color: colors.text }}
           >
-            All Master Data
+            Manage Prefield
           </h1>
           <p
             className="text-sm md:text-base"
@@ -115,7 +179,7 @@ const ManagePrefield = () => {
         <button
           onClick={handleDownload}
           disabled={downloading}
-          className="flex items-center cursor-pointer gap-2 px-6 py-2.5 rounded transition-all hover:opacity-90 shadow-sm border"
+          className="flex items-center cursor-pointer gap-2 px-6 py-2.5 rounded transition-all hover:opacity-90 shadow-sm border font-semibold"
           style={{
             backgroundColor: colors.primary,
             color: colors.background,
@@ -127,8 +191,143 @@ const ManagePrefield = () => {
           ) : (
             <MdDownload className="w-5 h-5" />
           )}
-          <span>Download Excel</span>
+          <span>{downloading ? "Downloading Excel..." : "Download Excel"}</span>
         </button>
+      </div>
+
+      {/* Search and Filter Bar */}
+      <div className="mb-6 space-y-4">
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex-1 relative">
+            <MdSearch
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5"
+              style={{ color: colors.textSecondary }}
+            />
+            <input
+              type="text"
+              placeholder="Search by WD Code, City, District..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-full pl-10 pr-4 py-2.5 rounded border outline-none transition-all shadow-sm"
+              style={{
+                backgroundColor: colors.background,
+                borderColor: colors.accent + "30",
+                color: colors.text,
+              }}
+            />
+          </div>
+
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="flex cursor-pointer items-center gap-2 px-4 py-2.5 rounded border transition-all font-medium"
+            style={{
+              backgroundColor: showFilters
+                ? colors.primary + "20"
+                : colors.background,
+              borderColor: colors.accent + "30",
+              color: showFilters ? colors.primary : colors.text,
+            }}
+          >
+            <MdFilterList className="w-5 h-5" />
+            <span>Filters</span>
+          </button>
+        </div>
+
+        {showFilters && (
+          <div
+            className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6 rounded border shadow-sm"
+            style={{
+              backgroundColor: colors.sidebar || colors.background,
+              borderColor: colors.accent + "30",
+            }}
+          >
+            {role === "admin" && (
+              <>
+                <div>
+                  <label
+                    className="block text-xs font-semibold uppercase mb-2"
+                    style={{ color: colors.textSecondary }}
+                  >
+                    Branch
+                  </label>
+                  <ModernSelect
+                    options={["All Branches", ...filterOptions.branches]}
+                    value={selectedBranch || "All Branches"}
+                    onChange={(val) => {
+                      setSelectedBranch(val === "All Branches" ? "" : val);
+                      setSelectedCircleAM("");
+                      setSelectedSectionAE("");
+                      setCurrentPage(1);
+                    }}
+                    placeholder="Select Branch"
+                  />
+                </div>
+                <div>
+                  <label
+                    className="block text-xs font-semibold uppercase mb-2"
+                    style={{ color: colors.textSecondary }}
+                  >
+                    Circle AM
+                  </label>
+                  <ModernSelect
+                    options={["All Circle AM", ...filterOptions.circleAMs]}
+                    value={selectedCircleAM || "All Circle AM"}
+                    onChange={(val) => {
+                      setSelectedCircleAM(val === "All Circle AM" ? "" : val);
+                      setSelectedSectionAE("");
+                      setCurrentPage(1);
+                    }}
+                    placeholder="Select Circle AM"
+                    disabled={!selectedBranch}
+                  />
+                </div>
+                <div>
+                  <label
+                    className="block text-xs font-semibold uppercase mb-2"
+                    style={{ color: colors.textSecondary }}
+                  >
+                    Section AE
+                  </label>
+                  <ModernSelect
+                    options={["All Section AE", ...filterOptions.sectionAEs]}
+                    value={selectedSectionAE || "All Section AE"}
+                    onChange={(val) => {
+                      setSelectedSectionAE(val === "All Section AE" ? "" : val);
+                      setCurrentPage(1);
+                    }}
+                    placeholder="Select Section AE"
+                    disabled={!selectedCircleAM}
+                  />
+                </div>
+              </>
+            )}
+
+            {role !== "admin" && (
+              <div className="md:col-span-3 text-center py-4">
+                <p style={{ color: colors.textSecondary }}>
+                  No additional filters available for your role.
+                </p>
+              </div>
+            )}
+
+            <div className="md:col-span-3 flex justify-end">
+              <button
+                onClick={clearFilters}
+                className="px-6 py-2 rounded font-semibold transition-all hover:bg-opacity-80 cursor-pointer"
+                style={{
+                  backgroundColor: colors.primary + "15",
+                  color: colors.primary,
+                  border: `1px solid ${colors.primary}30`,
+                }}
+              >
+                Clear All
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="mb-4 flex items-center gap-2">
@@ -136,7 +335,7 @@ const ManagePrefield = () => {
           className="text-sm font-medium"
           style={{ color: colors.textSecondary }}
         >
-          Total Master Data:
+          Total Prefields:
         </span>
         <span
           className="text-sm font-bold px-3 py-1 rounded-full flex items-center justify-center min-w-[30px]"
@@ -147,49 +346,6 @@ const ManagePrefield = () => {
           }}
         >
           {loading ? <Loader size={16} /> : totalItems}
-        </span>
-      </div>
-
-      {/* Search Bar */}
-      <div className="mb-6">
-        <div className="relative max-w-md">
-          <MdSearch
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5"
-            style={{ color: colors.textSecondary }}
-          />
-          <input
-            type="text"
-            placeholder="Search by WD Code, Branch, City..."
-            value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="w-full pl-10 pr-4 py-2.5 rounded border outline-none transition-all"
-            style={{
-              backgroundColor: colors.background,
-              borderColor: colors.accent + "30",
-              color: colors.text,
-            }}
-          />
-        </div>
-      </div>
-
-      <div className="mb-4 flex items-center gap-2">
-        <span
-          className="text-sm font-medium"
-          style={{ color: colors.textSecondary }}
-        >
-          Total Records:
-        </span>
-        <span
-          className="text-sm font-bold px-3 py-1 rounded-full flex items-center justify-center min-w-[30px]"
-          style={{
-            backgroundColor: colors.primary + "20",
-            color: colors.primary,
-          }}
-        >
-          {loading ? <Loader size={14} /> : totalItems}
         </span>
       </div>
 

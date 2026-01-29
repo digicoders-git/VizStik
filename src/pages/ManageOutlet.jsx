@@ -5,6 +5,7 @@ import {
   deleteOutlet,
   downloadOutletsExcel,
   downloadOutletsImagesZip,
+  getOutletFilters,
 } from "../apis/outlet";
 import {
   MdSearch,
@@ -22,6 +23,9 @@ import { useNavigate, useLocation } from "react-router-dom";
 import Swal from "sweetalert2";
 import Loader from "../components/ui/Loader";
 import { toast } from "react-toastify";
+import ModernSelect from "../components/ModernSelect";
+
+import useDebounce from "../hooks/useDebounce";
 
 const ManageOutlet = () => {
   const { colors } = useTheme();
@@ -34,6 +38,7 @@ const ManageOutlet = () => {
   const [downloading, setDownloading] = useState(false);
   const [downloadingImages, setDownloadingImages] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearch = useDebounce(searchTerm, 500);
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [showFilters, setShowFilters] = useState(false);
@@ -45,6 +50,23 @@ const ManageOutlet = () => {
   const [limit] = useState(10);
   const [totalOutlets, setTotalOutlets] = useState(0);
 
+  // New Filters
+  const [selectedBranch, setSelectedBranch] = useState("");
+  const [selectedGovtDistrict, setSelectedGovtDistrict] = useState("");
+  const [selectedCircleAM, setSelectedCircleAM] = useState("");
+  const [selectedSectionAE, setSelectedSectionAE] = useState("");
+  const [selectedActivity, setSelectedActivity] = useState("");
+  const [selectedTypeOfDs, setSelectedTypeOfDs] = useState("");
+
+  const [filterOptions, setFilterOptions] = useState({
+    branches: [],
+    govtDistricts: [],
+    circleAMs: [],
+    sectionAEs: [],
+    activities: [],
+    typesOfDs: [],
+  });
+
   const fetchOutlets = async () => {
     try {
       setLoading(true);
@@ -54,9 +76,15 @@ const ManageOutlet = () => {
       const params = {
         page: currentPage,
         limit: limit,
-        search: searchTerm,
+        search: debouncedSearch,
         fromDate,
         toDate,
+        Branch: selectedBranch,
+        Govt_District: selectedGovtDistrict,
+        Circle_AM: selectedCircleAM,
+        Section_AE: selectedSectionAE,
+        activity: selectedActivity,
+        typeOfDs: selectedTypeOfDs,
       };
 
       if (role === "Branch") {
@@ -92,7 +120,64 @@ const ManageOutlet = () => {
 
   useEffect(() => {
     fetchOutlets();
-  }, [currentPage, searchTerm, fromDate, toDate]);
+  }, [
+    currentPage,
+    debouncedSearch,
+    fromDate,
+    toDate,
+    selectedBranch,
+    selectedGovtDistrict,
+    selectedCircleAM,
+    selectedSectionAE,
+    selectedActivity,
+    selectedTypeOfDs,
+  ]);
+
+  useEffect(() => {
+    const fetchAllFilters = async () => {
+      try {
+        const response = await getOutletFilters();
+        if (response.success) {
+          setFilterOptions({
+            branches: response.branches || [],
+            govtDistricts: response.govtDistricts || [],
+            circleAMs: response.circleAMs || [],
+            sectionAEs: response.sectionAEs || [],
+            activities: response.activities || [],
+            typesOfDs: response.typesOfDs || [],
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching filters:", error);
+      }
+    };
+    fetchAllFilters();
+  }, []);
+
+  useEffect(() => {
+    const fetchDependentFilters = async () => {
+      try {
+        const response = await getOutletFilters({
+          Branch: selectedBranch,
+          Govt_District: selectedGovtDistrict,
+          Circle_AM: selectedCircleAM,
+        });
+        if (response.success) {
+          setFilterOptions((prev) => ({
+            ...prev,
+            govtDistricts: response.govtDistricts || [],
+            circleAMs: response.circleAMs || [],
+            sectionAEs: response.sectionAEs || [],
+          }));
+        }
+      } catch (error) {
+        console.error("Error fetching dependent filters:", error);
+      }
+    };
+    if (selectedBranch || selectedGovtDistrict || selectedCircleAM) {
+      fetchDependentFilters();
+    }
+  }, [selectedBranch, selectedGovtDistrict, selectedCircleAM]);
 
   const handleDelete = async (id) => {
     Swal.fire({
@@ -129,6 +214,12 @@ const ManageOutlet = () => {
         search: searchTerm,
         fromDate: fromDate,
         toDate: toDate,
+        Branch: selectedBranch,
+        Govt_District: selectedGovtDistrict,
+        Circle_AM: selectedCircleAM,
+        Section_AE: selectedSectionAE,
+        activity: selectedActivity,
+        typeOfDs: selectedTypeOfDs,
       };
 
       if (role === "Branch") {
@@ -158,6 +249,12 @@ const ManageOutlet = () => {
         search: searchTerm,
         fromDate: fromDate,
         toDate: toDate,
+        Branch: selectedBranch,
+        Govt_District: selectedGovtDistrict,
+        Circle_AM: selectedCircleAM,
+        Section_AE: selectedSectionAE,
+        activity: selectedActivity,
+        typeOfDs: selectedTypeOfDs,
       };
 
       if (role === "Branch") {
@@ -205,6 +302,12 @@ const ManageOutlet = () => {
     setSearchTerm("");
     setFromDate("");
     setToDate("");
+    setSelectedBranch("");
+    setSelectedGovtDistrict("");
+    setSelectedCircleAM("");
+    setSelectedSectionAE("");
+    setSelectedActivity("");
+    setSelectedTypeOfDs("");
     setCurrentPage(1);
   };
 
@@ -242,7 +345,9 @@ const ManageOutlet = () => {
             ) : (
               <MdDownload size={20} />
             )}
-            <span>Download Excel</span>
+            <span>
+              {downloading ? "Downloading Excel..." : "Download Excel"}
+            </span>
           </button>
           <button
             onClick={handleDownloadImages}
@@ -259,7 +364,9 @@ const ManageOutlet = () => {
             ) : (
               <MdImage size={20} />
             )}
-            <span>Download Images</span>
+            <span>
+              {downloadingImages ? "Creating Zip..." : "Download Images"}
+            </span>
           </button>
           <button
             onClick={() => navigate("/dashboard/outlets/map")}
@@ -285,7 +392,7 @@ const ManageOutlet = () => {
             />
             <input
               type="text"
-              placeholder="Search by activity or mobile..."
+              placeholder="Search by Mobile, Outlet Name, Employee Name, WD Code..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 rounded border outline-none transition-all"
@@ -315,66 +422,203 @@ const ManageOutlet = () => {
 
         {showFilters && (
           <div
-            className="flex flex-col md:flex-row gap-4 p-4 rounded border"
+            className="flex flex-col gap-6 p-6 rounded border shadow-sm"
             style={{
               backgroundColor: colors.sidebar || colors.background,
               borderColor: colors.accent + "30",
             }}
           >
-            <div className="flex-1">
-              <label
-                className="block text-sm font-medium mb-2"
-                style={{ color: colors.text }}
-              >
-                From Date
-              </label>
-              <input
-                type="date"
-                value={fromDate}
-                onChange={(e) => {
-                  setFromDate(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="w-full px-4 py-2 rounded border outline-none"
-                style={{
-                  backgroundColor: colors.background,
-                  borderColor: colors.accent + "30",
-                  color: colors.text,
-                }}
-              />
+            {/* Row 1: Dates & Branch (Branch/District visible only to admin) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div>
+                <label
+                  className="block text-xs font-semibold uppercase mb-2"
+                  style={{ color: colors.textSecondary }}
+                >
+                  From Date & Time
+                </label>
+                <input
+                  type="datetime-local"
+                  value={fromDate}
+                  onChange={(e) => {
+                    setFromDate(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="w-full px-4 py-2 rounded border outline-none"
+                  style={{
+                    backgroundColor: colors.background,
+                    borderColor: colors.accent + "30",
+                    color: colors.text,
+                  }}
+                />
+              </div>
+              <div>
+                <label
+                  className="block text-xs font-semibold uppercase mb-2"
+                  style={{ color: colors.textSecondary }}
+                >
+                  To Date & Time
+                </label>
+                <input
+                  type="datetime-local"
+                  value={toDate}
+                  onChange={(e) => {
+                    setToDate(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="w-full px-4 py-2 rounded border outline-none"
+                  style={{
+                    backgroundColor: colors.background,
+                    borderColor: colors.accent + "30",
+                    color: colors.text,
+                  }}
+                />
+              </div>
+
+              {localStorage.getItem("admin-role") === "admin" && (
+                <>
+                  <div>
+                    <label
+                      className="block text-xs font-semibold uppercase mb-2"
+                      style={{ color: colors.textSecondary }}
+                    >
+                      Branch
+                    </label>
+                    <ModernSelect
+                      options={["All Branches", ...filterOptions.branches]}
+                      value={selectedBranch || "All Branches"}
+                      onChange={(val) => {
+                        const actualVal = val === "All Branches" ? "" : val;
+                        setSelectedBranch(actualVal);
+                        setSelectedGovtDistrict("");
+                        setSelectedCircleAM("");
+                        setSelectedSectionAE("");
+                        setCurrentPage(1);
+                      }}
+                      placeholder="Select Branch"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      className="block text-xs font-semibold uppercase mb-2"
+                      style={{ color: colors.textSecondary }}
+                    >
+                      Govt District
+                    </label>
+                    <ModernSelect
+                      options={[
+                        "All Districts",
+                        ...filterOptions.govtDistricts,
+                      ]}
+                      value={selectedGovtDistrict || "All Districts"}
+                      onChange={(val) => {
+                        const actualVal = val === "All Districts" ? "" : val;
+                        setSelectedGovtDistrict(actualVal);
+                        setSelectedCircleAM("");
+                        setSelectedSectionAE("");
+                        setCurrentPage(1);
+                      }}
+                      disabled={!selectedBranch}
+                      placeholder="Select District"
+                    />
+                  </div>
+                </>
+              )}
             </div>
-            <div className="flex-1">
-              <label
-                className="block text-sm font-medium mb-2"
-                style={{ color: colors.text }}
-              >
-                To Date
-              </label>
-              <input
-                type="date"
-                value={toDate}
-                onChange={(e) => {
-                  setToDate(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="w-full px-4 py-2 rounded border outline-none"
-                style={{
-                  backgroundColor: colors.background,
-                  borderColor: colors.accent + "30",
-                  color: colors.text,
-                }}
-              />
+
+            {/* Row 2: Roles & Activities (Circle/Section visible only to admin) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {localStorage.getItem("admin-role") === "admin" && (
+                <>
+                  <div>
+                    <label
+                      className="block text-xs font-semibold uppercase mb-2"
+                      style={{ color: colors.textSecondary }}
+                    >
+                      Circle AM
+                    </label>
+                    <ModernSelect
+                      options={["All Circle AM", ...filterOptions.circleAMs]}
+                      value={selectedCircleAM || "All Circle AM"}
+                      onChange={(val) => {
+                        const actualVal = val === "All Circle AM" ? "" : val;
+                        setSelectedCircleAM(actualVal);
+                        setSelectedSectionAE("");
+                        setCurrentPage(1);
+                      }}
+                      placeholder="Select Circle AM"
+                      disabled={!selectedGovtDistrict}
+                    />
+                  </div>
+                  <div>
+                    <label
+                      className="block text-xs font-semibold uppercase mb-2"
+                      style={{ color: colors.textSecondary }}
+                    >
+                      Section AE
+                    </label>
+                    <ModernSelect
+                      options={["All Section AE", ...filterOptions.sectionAEs]}
+                      value={selectedSectionAE || "All Section AE"}
+                      onChange={(val) => {
+                        setSelectedSectionAE(
+                          val === "All Section AE" ? "" : val,
+                        );
+                        setCurrentPage(1);
+                      }}
+                      placeholder="Select Section AE"
+                      disabled={!selectedCircleAM}
+                    />
+                  </div>
+                </>
+              )}
+              <div>
+                <label
+                  className="block text-xs font-semibold uppercase mb-2"
+                  style={{ color: colors.textSecondary }}
+                >
+                  Activity
+                </label>
+                <ModernSelect
+                  options={["All Activities", ...filterOptions.activities]}
+                  value={selectedActivity || "All Activities"}
+                  onChange={(val) => {
+                    setSelectedActivity(val === "All Activities" ? "" : val);
+                    setCurrentPage(1);
+                  }}
+                  placeholder="Select Activity"
+                />
+              </div>
+              <div>
+                <label
+                  className="block text-xs font-semibold uppercase mb-2"
+                  style={{ color: colors.textSecondary }}
+                >
+                  Type of DS
+                </label>
+                <ModernSelect
+                  options={["All Types", ...filterOptions.typesOfDs]}
+                  value={selectedTypeOfDs || "All Types"}
+                  onChange={(val) => {
+                    setSelectedTypeOfDs(val === "All Types" ? "" : val);
+                    setCurrentPage(1);
+                  }}
+                  placeholder="Select Type"
+                />
+              </div>
             </div>
-            <div className="flex items-end">
+
+            <div className="flex justify-end pt-2">
               <button
                 onClick={clearFilters}
-                className="px-4 cursor-pointer py-2 rounded transition-all"
+                className="px-6 py-2.5 rounded font-semibold transition-all shadow-sm flex items-center gap-2 cursor-pointer"
                 style={{
-                  backgroundColor: colors.primary + "20",
+                  backgroundColor: colors.primary + "15",
                   color: colors.primary,
+                  border: `1px solid ${colors.primary}30`,
                 }}
               >
-                Clear Filters
+                Clear All Filters
               </button>
             </div>
           </div>

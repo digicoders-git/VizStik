@@ -107,3 +107,33 @@ export const downloadOutletsImagesZip = async (params = {}) => {
     throw error;
   }
 };
+
+export const getOutletFilters = async (params = {}) => {
+  const queryParams = new URLSearchParams();
+  Object.keys(params).forEach(key => {
+    if (params[key] !== undefined && params[key] !== '') {
+      queryParams.append(key, params[key]);
+    }
+  });
+
+  const queryString = queryParams.toString();
+  const url = queryString ? `/outlets/admin/filters?${queryString}` : '/outlets/admin/filters';
+  const response = await http.get(url);
+  return response.data;
+};
+
+export const getAdminDashboardStats = async (params = {}) => {
+  const queryParams = new URLSearchParams();
+  Object.keys(params).forEach((key) => {
+    if (params[key] !== undefined && params[key] !== "") {
+      queryParams.append(key, params[key]);
+    }
+  });
+
+  const queryString = queryParams.toString();
+  const url = queryString
+    ? `/outlets/admin/dashboard-stats?${queryString}`
+    : "/outlets/admin/dashboard-stats";
+  const response = await http.get(url);
+  return response.data;
+};

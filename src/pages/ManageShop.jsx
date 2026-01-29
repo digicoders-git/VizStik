@@ -18,6 +18,8 @@ import Swal from "sweetalert2";
 
 import Loader from "../components/ui/Loader";
 
+import useDebounce from "../hooks/useDebounce";
+
 const ManageShop = () => {
   const { colors } = useTheme();
   const navigate = useNavigate();
@@ -28,10 +30,11 @@ const ManageShop = () => {
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearch = useDebounce(searchTerm, 400);
   const [cityFilter, setCityFilter] = useState("");
   const [shopTypeFilter, setShopTypeFilter] = useState("");
   const [dateFilter, setDateFilter] = useState(
-    location.state?.initialDate || ""
+    location.state?.initialDate || "",
   );
   const [showFilters, setShowFilters] = useState(!!location.state?.initialDate);
 
@@ -74,33 +77,32 @@ const ManageShop = () => {
     }
   }, [location.state]);
 
-  // Filter, Sort, Paginate Logic
-  useEffect(() => {
+  // Filter, Sort, Paginate Logic optimized with useMemo
+  const processedShops = React.useMemo(() => {
     let result = [...allShops];
 
     // 1. Filter
-    if (searchTerm) {
-      const lowerTerm = searchTerm.toLowerCase();
+    if (debouncedSearch) {
+      const lowerTerm = debouncedSearch.toLowerCase();
       result = result.filter(
         (shop) =>
           (shop.shopName && shop.shopName.toLowerCase().includes(lowerTerm)) ||
           (shop.ownerName &&
             shop.ownerName.toLowerCase().includes(lowerTerm)) ||
-          (shop.shopCode && shop.shopCode.toLowerCase().includes(lowerTerm))
+          (shop.shopCode && shop.shopCode.toLowerCase().includes(lowerTerm)),
       );
     }
     if (cityFilter) {
+      const lowerCity = cityFilter.toLowerCase();
       result = result.filter(
-        (shop) =>
-          shop.city &&
-          shop.city.toLowerCase().includes(cityFilter.toLowerCase())
+        (shop) => shop.city && shop.city.toLowerCase().includes(lowerCity),
       );
     }
     if (shopTypeFilter) {
+      const lowerType = shopTypeFilter.toLowerCase();
       result = result.filter(
         (shop) =>
-          shop.shopType &&
-          shop.shopType.toLowerCase().includes(shopTypeFilter.toLowerCase())
+          shop.shopType && shop.shopType.toLowerCase().includes(lowerType),
       );
     }
 
@@ -111,23 +113,19 @@ const ManageShop = () => {
       return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
     });
 
+    return result;
+  }, [allShops, debouncedSearch, cityFilter, shopTypeFilter, sortOrder]);
+
+  useEffect(() => {
     // Update totals
-    setTotalShops(result.length);
-    setTotalPages(Math.ceil(result.length / limit) || 1);
+    setTotalShops(processedShops.length);
+    setTotalPages(Math.ceil(processedShops.length / limit) || 1);
 
     // 3. Paginate
     const startIndex = (currentPage - 1) * limit;
-    const paginated = result.slice(startIndex, startIndex + limit);
+    const paginated = processedShops.slice(startIndex, startIndex + limit);
     setShops(paginated);
-  }, [
-    allShops,
-    searchTerm,
-    cityFilter,
-    shopTypeFilter,
-    sortOrder,
-    currentPage,
-    limit,
-  ]);
+  }, [processedShops, currentPage, limit]);
 
   // Handle delete
   const handleDelete = async (id) => {
@@ -154,7 +152,7 @@ const ManageShop = () => {
               error.response.data.message ||
                 error.response.data.error ||
                 "Failed to delete shop.",
-              "error"
+              "error",
             );
           } else {
             Swal.fire("Error!", "Failed to delete shop.", "error");
@@ -179,7 +177,7 @@ const ManageShop = () => {
           error.response.data.message ||
             error.response.data.error ||
             "Failed to update shop status.",
-          "error"
+          "error",
         );
       } else {
         Swal.fire("Error!", "Failed to update shop status.", "error");

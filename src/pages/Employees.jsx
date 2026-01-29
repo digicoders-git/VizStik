@@ -6,6 +6,7 @@ import {
   updateEmployeeStatus,
   downloadEmployeesExcel,
 } from "../apis/employee";
+import { getOutletFilters } from "../apis/outlet";
 import { toast } from "react-toastify";
 import {
   MdVisibility,
@@ -22,6 +23,8 @@ import { useNavigate, useLocation } from "react-router-dom";
 import Toggle from "../components/ui/Toggle";
 import Loader from "../components/ui/Loader";
 import Swal from "sweetalert2";
+import ModernSelect from "../components/ModernSelect";
+import useDebounce from "../hooks/useDebounce";
 
 const Employees = () => {
   const { colors } = useTheme();
@@ -29,23 +32,25 @@ const Employees = () => {
   const location = useLocation();
   const role = localStorage.getItem("admin-role");
 
-  const [allEmployees, setAllEmployees] = useState([]); // Stores all raw data
-  const [filteredEmployees, setFilteredEmployees] = useState([]); // Stores filtered & sorted data
-  const [employees, setEmployees] = useState([]); // Stores current page data
-
+  const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
 
   // Search, Filter, Pagination states
   const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearch = useDebounce(searchTerm, 500);
   const [activeFilter, setActiveFilter] = useState(
     location.state?.initialStatus || "",
-  ); // 'true', 'false', or '' (all)
-  const [branchFilter, setBranchFilter] = useState("");
-  const [cityFilter, setCityFilter] = useState("");
-  const [circleAMFilter, setCircleAMFilter] = useState("");
-  const [sectionAEFilter, setSectionAEFilter] = useState("");
+  );
+
+  // Hierarchical Filter States
+  const [selectedBranch, setSelectedBranch] = useState("");
+  const [selectedGovtDistrict, setSelectedGovtDistrict] = useState("");
+  const [selectedCircleAM, setSelectedCircleAM] = useState("");
+  const [selectedSectionAE, setSelectedSectionAE] = useState("");
+  const [selectedTypeOfDs, setSelectedTypeOfDs] = useState("");
+
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
 
@@ -57,30 +62,83 @@ const Employees = () => {
     !!location.state?.initialStatus,
   );
 
+  const [filterOptions, setFilterOptions] = useState({
+    branches: [],
+    govtDistricts: [],
+    circleAMs: [],
+    sectionAEs: [],
+    typesOfDs: [],
+  });
+
   // Sorting state
   const [sortBy, setSortBy] = useState("");
   const [sortOrder, setSortOrder] = useState("desc");
 
-  // 1. Fetch Effect (Triggered by filter/page changes)
+  // Initial Filter Options
+  useEffect(() => {
+    const fetchAllFilters = async () => {
+      try {
+        const response = await getOutletFilters();
+        if (response.success) {
+          setFilterOptions({
+            branches: response.branches || [],
+            govtDistricts: response.govtDistricts || [],
+            circleAMs: response.circleAMs || [],
+            sectionAEs: response.sectionAEs || [],
+            typesOfDs: response.typesOfDs || [],
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching filters:", error);
+      }
+    };
+    fetchAllFilters();
+  }, []);
+
+  // Cascading Filters Logic
+  useEffect(() => {
+    const fetchDependentFilters = async () => {
+      try {
+        const response = await getOutletFilters({
+          Branch: selectedBranch,
+          Govt_District: selectedGovtDistrict,
+          Circle_AM: selectedCircleAM,
+        });
+        if (response.success) {
+          setFilterOptions((prev) => ({
+            ...prev,
+            govtDistricts: response.govtDistricts || [],
+            circleAMs: response.circleAMs || [],
+            sectionAEs: response.sectionAEs || [],
+          }));
+        }
+      } catch (error) {
+        console.error("Error fetching dependent filters:", error);
+      }
+    };
+    if (selectedBranch || selectedGovtDistrict || selectedCircleAM) {
+      fetchDependentFilters();
+    }
+  }, [selectedBranch, selectedGovtDistrict, selectedCircleAM]);
+
+  // Main Fetch Effect
   useEffect(() => {
     fetchEmployees();
   }, [
-    searchTerm,
+    debouncedSearch,
     activeFilter,
-    branchFilter,
-    cityFilter,
-    circleAMFilter,
-    sectionAEFilter,
+    selectedBranch,
+    selectedGovtDistrict,
+    selectedCircleAM,
+    selectedSectionAE,
+    selectedTypeOfDs,
     fromDate,
     toDate,
     currentPage,
-    limit,
     sortBy,
     sortOrder,
   ]);
 
-  // Client-side filtering/sorting is now handled by server, so we remove those effects
-  // We keep the initial filter state from navigation
   useEffect(() => {
     if (location.state?.initialStatus) {
       setActiveFilter(location.state.initialStatus);
@@ -88,35 +146,20 @@ const Employees = () => {
     }
   }, [location.state]);
 
-  // Handle Branch query param from Branch Analysis page
-  useEffect(() => {
-    const queryParams = new URLSearchParams(location.search);
-    const branchQuery = queryParams.get("branch");
-    if (branchQuery) {
-      setBranchFilter(branchQuery);
-      setShowFilters(true);
-    }
-  }, [location.search]);
-
-  // Removed debounce effect for fetch, as we fetch once.
-  // We can debounce the setSearchTerm update in the UI if needed,
-  // but for local filtering it's fast enough usually.
-  // Or we can keep a debounced search term for the filter effect.
-  // For now, let's keep it simple direct filtering.
-
   const fetchEmployees = async () => {
     try {
       setLoading(true);
-      const role = localStorage.getItem("admin-role");
-      const username = localStorage.getItem("admin-name");
+      const adminRole = localStorage.getItem("admin-role");
+      const adminName = localStorage.getItem("admin-name");
 
       const params = {
         search: searchTerm,
         isActive: activeFilter,
-        Branch: role === "Branch" ? username : branchFilter,
-        Circle_AM: role === "Circle_AM" ? username : circleAMFilter,
-        Section_AE: role === "Section_AE" ? username : sectionAEFilter,
-        City: cityFilter,
+        Branch: selectedBranch,
+        Govt_District: selectedGovtDistrict,
+        Circle_AM: selectedCircleAM,
+        Section_AE: selectedSectionAE,
+        typeOfDs: selectedTypeOfDs,
         fromDate: fromDate,
         toDate: toDate,
         limit,
@@ -125,15 +168,17 @@ const Employees = () => {
         order: sortOrder,
       };
 
-      const response = await getEmployees(params);
-      // New response structure: { data: [], pagination: { total, page, limit, totalPages }, success, message }
-      const employeesData = response.data || [];
-      const pagination = response.pagination || {};
+      // Role based restrictions if not admin
+      if (adminRole === "Branch") params.Branch = adminName;
+      if (adminRole === "Circle_AM") params.Circle_AM = adminName;
+      if (adminRole === "Section_AE") params.Section_AE = adminName;
 
-      setEmployees(employeesData);
-      console.log(employees)
-      setTotalEmployees(pagination.total || employeesData.length);
-      setTotalPages(pagination.totalPages || 1);
+      const response = await getEmployees(params);
+      if (response.success) {
+        setEmployees(response.data || []);
+        setTotalEmployees(response.pagination?.total || 0);
+        setTotalPages(response.pagination?.totalPages || 1);
+      }
     } catch (error) {
       console.error("Fetch employees error:", error);
       setEmployees([]);
@@ -145,22 +190,29 @@ const Employees = () => {
   const handleDownload = async () => {
     try {
       setDownloading(true);
-      const username = localStorage.getItem("admin-name");
-      const params = {};
-      if (role === "Branch") {
-        params.Branch = username;
-      } else if (role === "Circle_AM") {
-        params.Circle_AM = username;
-        params.Section_AE = sectionAEFilter;
-        params.Branch = branchFilter;
-      } else if (role === "Section_AE") {
-        params.Section_AE = username;
-        params.Branch = branchFilter;
-      } else {
-        params.Branch = branchFilter;
-        params.Circle_AM = circleAMFilter;
-        params.Section_AE = sectionAEFilter;
-      }
+      const adminRole = localStorage.getItem("admin-role");
+      const adminName = localStorage.getItem("admin-name");
+
+      const params = {
+        page: currentPage,
+        limit: limit,
+        search: debouncedSearch,
+        active: activeFilter,
+        Branch: selectedBranch,
+        Govt_District: selectedGovtDistrict,
+        Circle_AM: selectedCircleAM,
+        Section_AE: selectedSectionAE,
+        typeOfDs: selectedTypeOfDs,
+        fromDate,
+        toDate,
+        sortBy,
+        sortOrder,
+      };
+
+      if (adminRole === "Branch") params.Branch = adminName;
+      if (adminRole === "Circle_AM") params.Circle_AM = adminName;
+      if (adminRole === "Section_AE") params.Section_AE = adminName;
+
       await downloadEmployeesExcel(params);
       toast.success("Excel downloaded successfully");
     } catch (error) {
@@ -189,16 +241,7 @@ const Employees = () => {
         toast.success("Employee deleted successfully");
         fetchEmployees();
       } catch (error) {
-        console.error("Delete error:", error);
-        if (error.response && error.response.status !== 500) {
-          toast.error(
-            error.response.data.message ||
-              error.response.data.error ||
-              "Failed to delete employee",
-          );
-        } else {
-          toast.error("Failed to delete employee");
-        }
+        toast.error("Failed to delete employee");
       } finally {
         setDeletingId(null);
       }
@@ -210,16 +253,7 @@ const Employees = () => {
       await updateEmployeeStatus(employeeId);
       fetchEmployees();
     } catch (error) {
-      // console.error('Status toggle error:', error)
-      if (error.response && error.response.status !== 500) {
-        toast.error(
-          error.response.data.message ||
-            error.response.data.error ||
-            "Failed to update status",
-        );
-      } else {
-        toast.error("Failed to update status");
-      }
+      toast.error("Failed to update status");
     }
   };
 
@@ -230,16 +264,17 @@ const Employees = () => {
       setSortBy(field);
       setSortOrder("desc");
     }
-    setCurrentPage(1); // Reset to first page on sort
+    setCurrentPage(1);
   };
 
   const clearFilters = () => {
     setSearchTerm("");
     setActiveFilter("");
-    setBranchFilter("");
-    setCityFilter("");
-    setCircleAMFilter("");
-    setSectionAEFilter("");
+    setSelectedBranch("");
+    setSelectedGovtDistrict("");
+    setSelectedCircleAM("");
+    setSelectedSectionAE("");
+    setSelectedTypeOfDs("");
     setFromDate("");
     setToDate("");
     setCurrentPage(1);
@@ -247,15 +282,12 @@ const Employees = () => {
 
   return (
     <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold" style={{ color: colors.text }}>
             Manage Employees
           </h1>
-          <p
-            className="text-sm md:text-base mt-2"
-            style={{ color: colors.textSecondary }}
-          >
+          <p className="text-sm mt-1" style={{ color: colors.textSecondary }}>
             View and manage all registered employees
           </p>
         </div>
@@ -263,7 +295,7 @@ const Employees = () => {
         <button
           onClick={handleDownload}
           disabled={downloading}
-          className="flex items-center cursor-pointer gap-2 px-6 py-2.5 rounded transition-all hover:opacity-90 shadow-sm border"
+          className="flex items-center cursor-pointer gap-2 px-6 py-2.5 rounded transition-all hover:opacity-90 shadow-sm border font-semibold"
           style={{
             backgroundColor: colors.primary,
             color: colors.background,
@@ -275,14 +307,13 @@ const Employees = () => {
           ) : (
             <MdDownload className="w-5 h-5" />
           )}
-          <span>Download Excel</span>
+          <span>{downloading ? "Downloading Excel..." : "Download Excel"}</span>
         </button>
       </div>
 
       {/* Search and Filter Bar */}
       <div className="mb-6 space-y-4">
         <div className="flex flex-col md:flex-row gap-4">
-          {/* Search Box */}
           <div className="flex-1 relative">
             <MdSearch
               className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5"
@@ -290,10 +321,10 @@ const Employees = () => {
             />
             <input
               type="text"
-              placeholder="Search by name..."
+              placeholder="Search by name, mobile, WD code..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded border outline-none transition-all"
+              className="w-full pl-10 pr-4 py-2.5 rounded border outline-none transition-all shadow-sm"
               style={{
                 backgroundColor: colors.background,
                 borderColor: colors.accent + "30",
@@ -302,10 +333,9 @@ const Employees = () => {
             />
           </div>
 
-          {/* Filter Toggle Button */}
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="flex cursor-pointer items-center gap-2 px-4 py-2.5 rounded border transition-all"
+            className="flex cursor-pointer items-center gap-2 px-4 py-2.5 rounded border transition-all font-medium"
             style={{
               backgroundColor: showFilters
                 ? colors.primary + "20"
@@ -319,55 +349,28 @@ const Employees = () => {
           </button>
         </div>
 
-        {/* Filter Options */}
         {showFilters && (
           <div
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-4 rounded border"
+            className="flex flex-col gap-6 p-6 rounded border shadow-sm"
             style={{
               backgroundColor: colors.sidebar || colors.background,
               borderColor: colors.accent + "30",
             }}
           >
-            <div className="w-full">
-              <label
-                className="block text-sm font-medium mb-2"
-                style={{ color: colors.text }}
-              >
-                Status
-              </label>
-              <select
-                value={activeFilter}
-                onChange={(e) => {
-                  setActiveFilter(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="w-full px-4 py-2 rounded border outline-none cursor-pointer"
-                style={{
-                  backgroundColor: colors.background,
-                  borderColor: colors.accent + "30",
-                  color: colors.text,
-                }}
-              >
-                <option value="">All Status</option>
-                <option value="true">Active</option>
-                <option value="false">Inactive</option>
-              </select>
-            </div>
-
-            {role !== "Branch" && (
-              <div className="w-full">
+            {/* Row 1: Dates & Branch (Branch/District visible only to admin) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div>
                 <label
-                  className="block text-sm font-medium mb-2"
-                  style={{ color: colors.text }}
+                  className="block text-xs font-semibold uppercase mb-2"
+                  style={{ color: colors.textSecondary }}
                 >
-                  Branch
+                  From Date
                 </label>
                 <input
-                  type="text"
-                  placeholder="Branch..."
-                  value={branchFilter}
+                  type="date"
+                  value={fromDate}
                   onChange={(e) => {
-                    setBranchFilter(e.target.value);
+                    setFromDate(e.target.value);
                     setCurrentPage(1);
                   }}
                   className="w-full px-4 py-2 rounded border outline-none"
@@ -378,46 +381,18 @@ const Employees = () => {
                   }}
                 />
               </div>
-            )}
-
-            <div className="w-full">
-              <label
-                className="block text-sm font-medium mb-2"
-                style={{ color: colors.text }}
-              >
-                City
-              </label>
-              <input
-                type="text"
-                placeholder="City..."
-                value={cityFilter}
-                onChange={(e) => {
-                  setCityFilter(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="w-full px-4 py-2 rounded border outline-none"
-                style={{
-                  backgroundColor: colors.background,
-                  borderColor: colors.accent + "30",
-                  color: colors.text,
-                }}
-              />
-            </div>
-
-            {role === "admin" && (
-              <div className="w-full">
+              <div>
                 <label
-                  className="block text-sm font-medium mb-2"
-                  style={{ color: colors.text }}
+                  className="block text-xs font-semibold uppercase mb-2"
+                  style={{ color: colors.textSecondary }}
                 >
-                  Circle AM
+                  To Date
                 </label>
                 <input
-                  type="text"
-                  placeholder="Circle AM..."
-                  value={circleAMFilter}
+                  type="date"
+                  value={toDate}
                   onChange={(e) => {
-                    setCircleAMFilter(e.target.value);
+                    setToDate(e.target.value);
                     setCurrentPage(1);
                   }}
                   className="w-full px-4 py-2 rounded border outline-none"
@@ -428,97 +403,177 @@ const Employees = () => {
                   }}
                 />
               </div>
-            )}
 
-            {(role === "admin" || role === "Circle_AM") && (
-              <div className="w-full">
+              {role === "admin" && (
+                <>
+                  <div>
+                    <label
+                      className="block text-xs font-semibold uppercase mb-2"
+                      style={{ color: colors.textSecondary }}
+                    >
+                      Branch
+                    </label>
+                    <ModernSelect
+                      options={["All Branches", ...filterOptions.branches]}
+                      value={selectedBranch || "All Branches"}
+                      onChange={(val) => {
+                        const actualVal = val === "All Branches" ? "" : val;
+                        setSelectedBranch(actualVal);
+                        setSelectedGovtDistrict("");
+                        setSelectedCircleAM("");
+                        setSelectedSectionAE("");
+                        setCurrentPage(1);
+                      }}
+                      placeholder="Select Branch"
+                      disabled={role !== "admin"}
+                    />
+                  </div>
+                  <div>
+                    <label
+                      className="block text-xs font-semibold uppercase mb-2"
+                      style={{ color: colors.textSecondary }}
+                    >
+                      Govt District
+                    </label>
+                    <ModernSelect
+                      options={[
+                        "All Districts",
+                        ...filterOptions.govtDistricts,
+                      ]}
+                      value={selectedGovtDistrict || "All Districts"}
+                      onChange={(val) => {
+                        const actualVal = val === "All Districts" ? "" : val;
+                        setSelectedGovtDistrict(actualVal);
+                        setSelectedCircleAM("");
+                        setSelectedSectionAE("");
+                        setCurrentPage(1);
+                      }}
+                      disabled={!selectedBranch && role === "admin"}
+                      placeholder="Select District"
+                    />
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Row 2: Roles (Circle/Section visible only to admin) & Status */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {role === "admin" && (
+                <>
+                  <div>
+                    <label
+                      className="block text-xs font-semibold uppercase mb-2"
+                      style={{ color: colors.textSecondary }}
+                    >
+                      Circle AM
+                    </label>
+                    <ModernSelect
+                      options={["All Circle AM", ...filterOptions.circleAMs]}
+                      value={selectedCircleAM || "All Circle AM"}
+                      onChange={(val) => {
+                        const actualVal = val === "All Circle AM" ? "" : val;
+                        setSelectedCircleAM(actualVal);
+                        setSelectedSectionAE("");
+                        setCurrentPage(1);
+                      }}
+                      placeholder="Select Circle AM"
+                      disabled={
+                        (!selectedGovtDistrict && role === "admin") ||
+                        role === "Circle_AM" ||
+                        role === "Section_AE"
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label
+                      className="block text-xs font-semibold uppercase mb-2"
+                      style={{ color: colors.textSecondary }}
+                    >
+                      Section AE
+                    </label>
+                    <ModernSelect
+                      options={["All Section AE", ...filterOptions.sectionAEs]}
+                      value={selectedSectionAE || "All Section AE"}
+                      onChange={(val) => {
+                        setSelectedSectionAE(
+                          val === "All Section AE" ? "" : val,
+                        );
+                        setCurrentPage(1);
+                      }}
+                      placeholder="Select Section AE"
+                      disabled={
+                        (!selectedCircleAM && role === "admin") ||
+                        role === "Section_AE"
+                      }
+                    />
+                  </div>
+                </>
+              )}
+              <div>
                 <label
-                  className="block text-sm font-medium mb-2"
-                  style={{ color: colors.text }}
+                  className="block text-xs font-semibold uppercase mb-2"
+                  style={{ color: colors.textSecondary }}
                 >
-                  Section AE
+                  Type of DS
                 </label>
-                <input
-                  type="text"
-                  placeholder="Section AE..."
-                  value={sectionAEFilter}
-                  onChange={(e) => {
-                    setSectionAEFilter(e.target.value);
+                <ModernSelect
+                  options={["All Types", ...filterOptions.typesOfDs]}
+                  value={selectedTypeOfDs || "All Types"}
+                  onChange={(val) => {
+                    setSelectedTypeOfDs(val === "All Types" ? "" : val);
                     setCurrentPage(1);
                   }}
-                  className="w-full px-4 py-2 rounded border outline-none"
-                  style={{
-                    backgroundColor: colors.background,
-                    borderColor: colors.accent + "30",
-                    color: colors.text,
-                  }}
+                  placeholder="Select Type"
                 />
               </div>
-            )}
-
-            <div className="w-full">
-              <label
-                className="block text-sm font-medium mb-2"
-                style={{ color: colors.text }}
-              >
-                From Date
-              </label>
-              <input
-                type="date"
-                value={fromDate}
-                onChange={(e) => {
-                  setFromDate(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="w-full px-4 py-2 rounded border outline-none"
-                style={{
-                  backgroundColor: colors.background,
-                  borderColor: colors.accent + "30",
-                  color: colors.text,
-                }}
-              />
+              <div>
+                <label
+                  className="block text-xs font-semibold uppercase mb-2"
+                  style={{ color: colors.textSecondary }}
+                >
+                  Status
+                </label>
+                <ModernSelect
+                  options={["All Status", "Active", "Inactive"]}
+                  value={
+                    activeFilter === ""
+                      ? "All Status"
+                      : activeFilter === "true"
+                        ? "Active"
+                        : "Inactive"
+                  }
+                  onChange={(val) => {
+                    setActiveFilter(
+                      val === "All Status"
+                        ? ""
+                        : val === "Active"
+                          ? "true"
+                          : "false",
+                    );
+                    setCurrentPage(1);
+                  }}
+                  placeholder="Select Status"
+                />
+              </div>
             </div>
 
-            <div className="w-full">
-              <label
-                className="block text-sm font-medium mb-2"
-                style={{ color: colors.text }}
-              >
-                To Date
-              </label>
-              <input
-                type="date"
-                value={toDate}
-                onChange={(e) => {
-                  setToDate(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="w-full px-4 py-2 rounded border outline-none"
-                style={{
-                  backgroundColor: colors.background,
-                  borderColor: colors.accent + "30",
-                  color: colors.text,
-                }}
-              />
-            </div>
-
-            <div className="flex items-end w-full">
+            <div className="flex justify-end pt-2">
               <button
                 onClick={clearFilters}
-                className="px-4 cursor-pointer py-2 rounded transition-all w-full md:w-auto"
+                className="px-6 py-2.5 rounded font-semibold transition-all shadow-sm flex items-center gap-2 cursor-pointer"
                 style={{
-                  backgroundColor: colors.primary + "20",
+                  backgroundColor: colors.primary + "15",
                   color: colors.primary,
+                  border: `1px solid ${colors.primary}30`,
                 }}
               >
-                Clear
+                Clear All Filters
               </button>
             </div>
           </div>
         )}
       </div>
 
-      {/* Stats */}
       <div className="mb-4 flex items-center gap-2">
         <span
           className="text-sm font-medium"
