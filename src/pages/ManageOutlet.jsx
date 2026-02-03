@@ -16,8 +16,9 @@ import {
   MdChevronRight,
   MdMap,
   MdDownload,
-  MdClose,
   MdImage,
+  MdInfo,
+  MdWarning,
 } from "react-icons/md";
 import { useNavigate, useLocation } from "react-router-dom";
 import Swal from "sweetalert2";
@@ -205,6 +206,15 @@ const ManageOutlet = () => {
   };
 
   const handleDownload = async () => {
+    if (totalOutlets > 50000) {
+      Swal.fire({
+        icon: "error",
+        title: "Download Limit Exceeded",
+        text: "You cannot download more than 50k outlets",
+        confirmButtonColor: colors.primary,
+      });
+      return;
+    }
     try {
       setDownloading(true);
       const role = localStorage.getItem("admin-role");
@@ -240,6 +250,20 @@ const ManageOutlet = () => {
   };
 
   const handleDownloadImages = async () => {
+    if (totalOutlets > 20000) {
+      const result = await Swal.fire({
+        icon: "warning",
+        title: "High Image Volume",
+        text: `You have selected ${totalOutlets} outlets. Downloading images for such a large dataset can be slow. For the best experience, we recommend using filters to keep the count under 20,000. Do you want to proceed?`,
+        showCancelButton: true,
+        confirmButtonColor: colors.primary,
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, Proceed",
+        cancelButtonText: "Cancel",
+      });
+
+      if (!result.isConfirmed) return;
+    }
     try {
       setDownloadingImages(true);
       const role = localStorage.getItem("admin-role");
@@ -329,30 +353,38 @@ const ManageOutlet = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 md:gap-3">
           <button
             onClick={handleDownload}
             disabled={downloading}
-            className="flex items-center cursor-pointer gap-2 px-4 py-2.5 rounded transition-all hover:opacity-90 shadow-sm border"
+            className="flex items-center gap-2 px-3 py-2 md:px-4 md:py-2.5 rounded transition-all shadow-sm border text-[10px] sm:text-xs md:text-sm font-medium"
             style={{
-              backgroundColor: colors.accent + "10",
-              color: colors.primary,
-              borderColor: colors.primary,
+              backgroundColor:
+                totalOutlets > 50000
+                  ? colors.textSecondary + "10"
+                  : colors.accent + "10",
+              color:
+                totalOutlets > 50000 ? colors.textSecondary : colors.primary,
+              borderColor:
+                totalOutlets > 50000
+                  ? colors.textSecondary + "30"
+                  : colors.primary,
+              cursor: totalOutlets > 50000 ? "not-allowed" : "pointer",
+              opacity: totalOutlets > 50000 ? 0.7 : 1,
             }}
           >
             {downloading ? (
-              <Loader size={20} color={colors.primary} />
+              <Loader size={18} color={colors.primary} />
             ) : (
-              <MdDownload size={20} />
+              <MdDownload size={18} className="md:size-5" />
             )}
-            <span>
-              {downloading ? "Downloading Excel..." : "Download Excel"}
-            </span>
+            <span>{downloading ? "Downloading..." : "Download Excel"}</span>
           </button>
+
           <button
             onClick={handleDownloadImages}
             disabled={downloadingImages}
-            className="flex items-center cursor-pointer gap-2 px-4 py-2.5 rounded transition-all hover:opacity-90 shadow-sm border"
+            className="flex items-center cursor-pointer gap-2 px-3 py-2 md:px-4 md:py-2.5 rounded transition-all hover:opacity-90 shadow-sm border text-[10px] sm:text-xs md:text-sm font-medium"
             style={{
               backgroundColor: colors.primary + "10",
               color: colors.primary,
@@ -360,23 +392,24 @@ const ManageOutlet = () => {
             }}
           >
             {downloadingImages ? (
-              <Loader size={20} color={colors.primary} />
+              <Loader size={18} color={colors.primary} />
             ) : (
-              <MdImage size={20} />
+              <MdDownload size={18} className="md:size-5" />
             )}
             <span>
               {downloadingImages ? "Creating Zip..." : "Download Images"}
             </span>
           </button>
+
           <button
             onClick={() => navigate("/dashboard/outlets/map")}
-            className="flex items-center cursor-pointer gap-2 px-4 py-2.5 rounded transition-all hover:opacity-90 shadow-sm"
+            className="flex items-center cursor-pointer gap-2 px-3 py-2 md:px-4 md:py-2.5 rounded transition-all hover:opacity-90 shadow-sm text-[10px] sm:text-xs md:text-sm font-medium"
             style={{
               backgroundColor: colors.primary,
               color: colors.background,
             }}
           >
-            <MdMap size={20} />
+            <MdMap size={18} className="md:size-5" />
             <span>View On Map</span>
           </button>
         </div>
@@ -625,23 +658,61 @@ const ManageOutlet = () => {
         )}
       </div>
 
-      <div className="mb-4 flex items-center gap-2">
-        <span
-          className="text-sm font-medium"
-          style={{ color: colors.textSecondary }}
-        >
-          Total Outlets:
-        </span>
-        <span
-          className="text-sm font-bold px-3 py-1 rounded-full flex items-center justify-center min-w-[30px]"
-          style={{
-            backgroundColor: colors.primary + "20",
-            color: colors.primary,
-            minHeight: "28px",
-          }}
-        >
-          {loading ? <Loader size={16} /> : totalOutlets}
-        </span>
+      <div className="mb-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-2">
+          <span
+            className="text-sm font-medium"
+            style={{ color: colors.textSecondary }}
+          >
+            Total Outlets:
+          </span>
+          <span
+            className="text-sm font-bold px-3 py-1 rounded-full flex items-center justify-center min-w-[30px]"
+            style={{
+              backgroundColor: colors.primary + "20",
+              color: colors.primary,
+              minHeight: "28px",
+            }}
+          >
+            {loading ? <Loader size={16} /> : totalOutlets}
+          </span>
+        </div>
+
+        {totalOutlets > 50000 && (
+          <div
+            className="flex items-center gap-2 px-4 py-2 rounded-lg border"
+            style={{
+              backgroundColor: "#fff5f5",
+              borderColor: "#feb2b2",
+              color: "#c53030",
+            }}
+          >
+            <MdWarning size={18} />
+            <span className="text-xs font-semibold">
+              <span className="font-bold">Note:</span> Excel download is
+              restricted to 50,000+ Outlets. Please apply filters to reduce the
+              count.
+            </span>
+          </div>
+        )}
+
+        {totalOutlets > 20000 && (
+          <div
+            className="flex items-center gap-2 px-4 py-2 rounded-lg border"
+            style={{
+              backgroundColor: "#fffbeb",
+              borderColor: "#fde68a",
+              color: "#92400e",
+            }}
+          >
+            <MdInfo size={18} />
+            <span className="text-xs font-semibold">
+              <span className="font-bold">Note:</span> To ensure a smooth image
+              download, please use filters to keep the count below 20,000
+              outlets.
+            </span>
+          </div>
+        )}
       </div>
 
       <div

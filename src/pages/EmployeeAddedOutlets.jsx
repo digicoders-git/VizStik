@@ -13,9 +13,13 @@ import {
   MdChevronLeft,
   MdChevronRight,
   MdDownload,
+  MdImage,
   MdClose,
+  MdWarning,
+  MdInfo,
 } from "react-icons/md";
 import Loader from "../components/ui/Loader";
+import Swal from "sweetalert2";
 
 const EmployeeAddedOutlets = () => {
   const { colors } = useTheme();
@@ -24,6 +28,7 @@ const EmployeeAddedOutlets = () => {
   const [employee, setEmployee] = useState(null);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
+  const [downloadingImages, setDownloadingImages] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedImage, setSelectedImage] = useState(null);
   const itemsPerPage = 10;
@@ -61,6 +66,15 @@ const EmployeeAddedOutlets = () => {
   };
 
   const handleDownload = async () => {
+    if (outlets.length > 50000) {
+      Swal.fire({
+        icon: "error",
+        title: "Download Limit Exceeded",
+        text: "You cannot download more than 50k outlets",
+        confirmButtonColor: colors.primary,
+      });
+      return;
+    }
     try {
       setDownloading(true);
       await downloadOutletsExcel(id);
@@ -69,6 +83,33 @@ const EmployeeAddedOutlets = () => {
       toast.error("Failed to download excel");
     } finally {
       setDownloading(false);
+    }
+  };
+
+  const handleDownloadImages = async () => {
+    const total = outlets.length;
+    if (total > 20000) {
+      const result = await Swal.fire({
+        icon: "warning",
+        title: "High Image Volume",
+        text: `You have selected ${total} outlets. Downloading images for such a large dataset can be slow. For the best experience, we recommend keeping the count under 20,000. Do you want to proceed?`,
+        showCancelButton: true,
+        confirmButtonColor: colors.primary,
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, Proceed",
+        cancelButtonText: "Cancel",
+      });
+
+      if (!result.isConfirmed) return;
+    }
+    try {
+      setDownloadingImages(true);
+      await downloadOutletsImagesZip({ employeeId: id });
+      toast.success("Images zip downloaded successfully");
+    } catch (error) {
+      toast.error(error.message || "Failed to download images zip");
+    } finally {
+      setDownloadingImages(false);
     }
   };
 
@@ -110,23 +151,89 @@ const EmployeeAddedOutlets = () => {
           </div>
         </div>
 
-        <button
-          onClick={handleDownload}
-          disabled={downloading}
-          className="flex items-center cursor-pointer gap-2 px-4 py-2 rounded transition-all hover:opacity-90 shadow-sm"
+        <div className="flex flex-wrap items-center gap-2 md:gap-3">
+          <button
+            onClick={handleDownload}
+            disabled={downloading}
+            className="flex items-center cursor-pointer gap-2 px-3 py-2 md:px-5 md:py-2.5 rounded transition-all shadow-sm text-[10px] sm:text-xs md:text-sm font-semibold"
+            style={{
+              backgroundColor:
+                outlets.length > 50000
+                  ? colors.textSecondary + "20"
+                  : colors.primary,
+              color:
+                outlets.length > 50000
+                  ? colors.textSecondary
+                  : colors.background,
+              cursor: outlets.length > 50000 ? "not-allowed" : "pointer",
+              opacity: outlets.length > 50000 ? 0.7 : 1,
+            }}
+          >
+            {downloading ? (
+              <Loader size={18} color={colors.background} />
+            ) : (
+              <MdDownload size={18} className="md:size-5" />
+            )}
+            <span>{downloading ? "Downloading..." : "Download Excel"}</span>
+          </button>
+
+          <button
+            onClick={handleDownloadImages}
+            disabled={downloadingImages}
+            className="flex items-center cursor-pointer gap-2 px-3 py-2 md:px-5 md:py-2.5 rounded transition-all shadow-sm text-[10px] sm:text-xs md:text-sm font-semibold"
+            style={{
+              backgroundColor: colors.accent + "10",
+              color: colors.primary,
+              border: `1px solid ${colors.primary}`,
+            }}
+          >
+            {downloadingImages ? (
+              <Loader size={18} color={colors.primary} />
+            ) : (
+              <MdDownload size={18} className="md:size-5" />
+            )}
+            <span>
+              {downloadingImages ? "Creating Zip..." : "Download Images"}
+            </span>
+          </button>
+        </div>
+      </div>
+
+      {outlets.length > 50000 && (
+        <div
+          className="mb-4 flex items-center gap-3 px-5 py-3 rounded-xl border shadow-sm"
           style={{
-            backgroundColor: colors.primary,
-            color: colors.background,
+            backgroundColor: "#fff5f5",
+            borderColor: "#feb2b2",
+            color: "#c53030",
           }}
         >
-          {downloading ? (
-            <Loader size={20} color={colors.background} />
-          ) : (
-            <MdDownload size={20} />
-          )}
-          <span>Download Excel</span>
-        </button>
-      </div>
+          <MdWarning size={22} />
+          <p className="text-sm font-medium">
+            <span className="font-bold underline">Restriction Note:</span> Excel
+            download is restricted to 50,000+ Outlets. Please apply filters to
+            reduce the count.
+          </p>
+        </div>
+      )}
+
+      {outlets.length > 20000 && (
+        <div
+          className="mb-6 flex items-center gap-3 px-5 py-3 rounded-xl border shadow-sm"
+          style={{
+            backgroundColor: "#fffbeb",
+            borderColor: "#fde68a",
+            color: "#92400e",
+          }}
+        >
+          <MdInfo size={22} />
+          <p className="text-sm font-medium">
+            <span className="font-bold underline">Note:</span> To ensure a
+            smooth image download, we recommend selecting fewer than 20,000
+            outlets using available filters.
+          </p>
+        </div>
+      )}
 
       <div
         className="mb-8 p-6 rounded border shadow-sm flex flex-wrap items-center gap-6"

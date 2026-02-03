@@ -178,7 +178,18 @@ const Home = () => {
   const overviewChartOptions = {
     chart: { type: "column", backgroundColor: "transparent", height: 300 },
     accessibility: { enabled: false },
-    title: { text: `Total Added (${filter})`, style: { color: colors.text } },
+    title: {
+      text: `Total Added (${
+        filter === "Day"
+          ? "Today"
+          : filter === "Week"
+            ? "This Week"
+            : filter === "Month"
+              ? "This Month"
+              : "This Year"
+      })`,
+      style: { color: colors.text },
+    },
     xAxis: {
       categories: ["Employees", "Outlets"],
       labels: { style: { color: colors.textSecondary } },
@@ -206,8 +217,8 @@ const Home = () => {
       {
         name: "Total Added",
         data: [
-          { y: chartData.filteredCounts.employees, color: colors.primary },
-          { y: chartData.filteredCounts.outlets, color: "#f59e0b" },
+          { y: chartData.filteredCounts.employees || 0, color: colors.primary },
+          { y: chartData.filteredCounts.outlets || 0, color: "#f59e0b" },
         ],
       },
     ],
